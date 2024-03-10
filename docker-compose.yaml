@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+  database:
+    image: mdillon/postgis:10
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pw"
+      POSTGRES_DB: "dbms"
+  eoxserver:
+    image: eoxa/eoxserver
+    environment:
+      DB: "postgis"
+      DB_USER: "user"
+      DB_PW: "pw"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_NAME: "dbms"
+      INSTANCE_NAME: "instance"
+      INSTANCE_DIR: "/opt/instance"
+      DJANGO_USER: "admin"
+      DJANGO_MAIL: "admin@example.com"
+      DJANGO_PASSWORD: "admin"
+      COLLECT_STATIC: "true"
+      XML_CATALOG_FILES: "/opt/schemas/catalog.xml"
+      # GUNICORN_CMD_ARGS: "--config /opt/eoxserver/gunicorn.conf.py ${INSTANCE_NAME}.wsgi:application" # Uncomment if you have specific gunicorn command arguments.
+    ports:
+      - "8800:8000"
+    depends_on:
+      - database
+    volumes:
+      - ./data:/mnt/data  # TODO: Replace with S3 mount or similar.
+
+
+volumes:
+  database-data:
