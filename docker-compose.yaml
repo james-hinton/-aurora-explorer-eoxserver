@@ -1,6 +1,8 @@
-version: "3.7"
+
+version: '3.7'
+
 services:
-  database:
+  db:
     image: mdillon/postgis:10
     volumes:
       - database-data:/var/lib/postgresql/data
@@ -8,38 +10,89 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "pw"
       POSTGRES_DB: "dbms"
+    networks:
+      - eoxserver_network
 
-  eoxserver:
+  web:
     image: eoxa/eoxserver
-    environment:
-      DB: "postgis"
-      DB_USER: "user"
-      DB_PW: "pw"
-      DB_HOST: "database"
-      DB_PORT: "5432"
-      DB_NAME: "dbms"
-      INSTANCE_NAME: "instance"
-      INSTANCE_DIR: "/opt/instance"
-      DJANGO_USER: "admin"
-      DJANGO_MAIL: "admin@example.com"
-      DJANGO_PASSWORD: "admin"
-      COLLECT_STATIC: "true"
-      XML_CATALOG_FILES: "/opt/schemas/catalog.xml"
-      STATIC_URL: "/static/"
-      STATIC_ROOT: "/opt/static"
+    container_name: eoxserver_dev_app
     volumes:
-      - ./data:/mnt/data  # TODO: Replace with S3 mount or similar.
-      - ./static:/opt/static
-    ports:
-      - "8800:8000"
+      - static_volume:/root/eoxserver_platform/staticfiles
+    expose:
+      - 8000
+    environment:
+      - VIRTUAL_HOST=eoxserver.james.org
+      - LETSENCRYPT_HOST=eoxserver.james.org
+      - VIRTUAL_PORT=8000
+      - VIRTUAL_PATH=/
+      - VIRTUAL_DEST=/
+      - DB=postgis
+      - DB_USER=user
+      - DB_PW=pw
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=dbms
+      - INSTANCE_NAME=instance
+      - INSTANCE_DIR=/opt/instance
+      - DJANGO_USER=admin
+      - DJANGO_MAIL=admin@example.com
+      - DJANGO_PASSWORD=admin
+      - COLLECT_STATIC=true
+      - XML_CATALOG_FILES=/opt/schemas/catalog.xml
+      - ALLOWED_HOSTS=*
+      - STATIC_URL=/staticfiles/
+      - STATIC_ROOT=/root/eoxserver_platform/staticfiles
+    depends_on:
+      - db
+    networks:
+      - eoxserver_network
 
   static-files-nginx:
-    image: nginx:alpine
+    image: nginx:latest
+    container_name: eoxserver_dev_static_files_nginx
+    expose:
+      - 80
+    environment:
+      - VIRTUAL_HOST=eoxserver.james.org
+      - LETSENCRYPT_HOST=eoxserver.james.org
+      - VIRTUAL_PORT=80
+      - VIRTUAL_PATH=/staticfiles
+      - VIRTUAL_DEST=/
     volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - ./static:/usr/share/nginx/html/static
+      - static_volume:/usr/share/nginx/html
+    depends_on:
+      - web
+    networks:
+      - eoxserver_network
+  
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    expose:
+      - 80
+      - 443
     ports:
-      - "8080:80"
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - vhost:/etc/nginx/vhost.d
+      - certs:/etc/nginx/certs:ro
+      - acme_challenge:/usr/share/nginx/html
+    depends_on:
+      - web
+      - static-files-nginx
+    networks:
+      - eoxserver_network
+
+
+networks:
+  eoxserver_network:
+    driver: bridge
 
 volumes:
   database-data:
+  static_volume:
+  vhost:
+  certs:
+  acme_challenge:
