@@ -17,6 +17,7 @@ services:
     image: eoxa/eoxserver
     container_name: eoxserver_dev_app
     volumes:
+      - ./data:/mnt/data:ro
       - static_volume:/root/eoxserver_platform/staticfiles
     expose:
       - 8000
