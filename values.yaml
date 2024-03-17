@@ -184,15 +184,6 @@ client:
   nameOverride:
   fullNameOverride:
 
-  volumes:
-    - name: local-storage
-      hostPath:
-        path: /data
-        type: Directory
-  volumeMounts:
-    - name: local-storage
-      mountPath: /data
-
   image:
     repository: registry.gitlab.eox.at/vs/vs/client
     pullPolicy: IfNotPresent
@@ -533,7 +524,7 @@ renderer:
   volumes:
     - name: local-storage
       hostPath:
-        path: /data
+        path: /minikube-host/Projects/aurora-test-data
         type: Directory
   volumeMounts:
     - name: local-storage
@@ -629,7 +620,7 @@ registrar:
   volumes:
     - name: local-storage
       hostPath:
-        path: /data
+        path: /minikube-host/Projects/aurora-test-data
         type: Directory
   volumeMounts:
     - name: local-storage
