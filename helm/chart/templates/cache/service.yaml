@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vs-cache.fullname" . }}
+  labels:
+    {{- include "vs-cache.labels" . | nindent 4 }}
+    app.kubernetes.io/service: cache
+spec:
+  type: {{ .Values.cache.service.type }}
+  ports:
+    - port: {{ .Values.cache.service.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "vs-cache.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/service: cache

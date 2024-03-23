@@ -1,0 +1,245 @@
+{
+    "$schema":"http://json-schema.org/draft-07/schema",
+    "$id":"https://gitlab.eox.at/vs/vs/-/raw/main/chart/client.values.schema.json",
+    "type":"object",
+    "description":"Client chart values schema",
+    "properties":{
+      "config":{
+        "type":"object",
+        "title":"Configuration of the client itself.",
+        "properties":{
+          "timeDomain": {
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/timeDomain",
+            "description": "The overall time domain of the client. No time can be selected outside of this domain. Also accepts following strings of premade JS variables: 'today', 'customClientDatePast1' - 'customClientDatePast4', customClientDateFuture1' - 'customClientDateFuture4'",
+            "examples": [
+              ["2019-01-01T00:00:00Z",
+                "today"
+              ]
+            ]
+          },
+          "displayTimeDomain":{
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/displayTimeDomain",
+            "description": "The initially displayed time interval. Also accepts following strings of premade JS variables: 'today', 'customClientDatePast1' - 'customClientDatePast4', customClientDateFuture1' - 'customClientDateFuture4'",
+            "examples": [
+              [
+                "customClientDatePast1",
+                "customClientDateFuture1"
+              ]
+            ]
+          },
+          "displayInterval":{
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/displayInterval"
+          },
+          "selectedTimeDomain":{
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/selectedTimeDomain",
+            "description": "The initially displayed time interval. Also accepts following strings of premade JS variables: 'today', 'customClientDatePast1' - 'customClientDatePast4', customClientDateFuture1' - 'customClientDateFuture4'",
+            "examples": [
+              [
+                "customClientDatePast1",
+                "customClientDateFuture1"
+              ]
+            ]
+          },
+          "selectableInterval": {
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/selectableInterval"
+          },
+          "eoxserverDownloadEnabled":{
+            "description": "If true, enables default download configuration via WCS from the renderer endpoint.",
+            "type": "boolean",
+            "default": false
+          },
+          "center": {
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/center"
+          },
+          "zoom": {
+            "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/zoom"
+          },
+          "minZoom": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/minZoom"
+          },
+          "maxZoom": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/maxZoom"
+          },
+          "heightFactor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/heightFactor"
+          },
+          "timeSliderControls": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/timeSliderControls"
+          },
+          "searchDebounceTime":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/searchDebounceTime"
+          },
+          "serviceUrl": {
+            "type": "string",
+            "description": "If values.global.tls.hosts is not set, then this variable is used as a baseURL for client wms/opensearch/wcs requests."
+          },
+          "footprintLabel": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/footprintLabel"
+          },
+          "clientHeaderHTML": {
+            "type": "string",
+            "description": "Header of the app configurable as HTML element"
+          },
+          "clientHeaderHeight": {
+            "type": "string",
+            "description": "Header of the header of the app. The main app height is full height - this value.",
+            "example": "70px"
+          },
+          "customClientDaysPast1": {
+            "type": "number",
+            "description": "When configured to a 'x' number of days, internally will create a 'customClientDatePast1' JS datetime object variable as (current date - 'x' days). This variable can then be referenced in timeDomain, displayTimeDomain and selectedTimeDomain settings to allow setting client timeDomain to for example last 90 days until a week ago.",
+            "example": 90
+          },
+          "customClientDaysPast2": {
+            "$ref": "#/properties/config/properties/customClientDaysPast1"
+          },
+          "customClientDaysPast3": {
+            "$ref": "#/properties/config/properties/customClientDaysPast1"
+          },
+          "customClientDaysPast4": {
+            "$ref": "#/properties/config/properties/customClientDaysPast1"
+          },
+          "customClientDaysFuture1": {
+            "type": "number",
+            "description": "When configured to a 'x' number of days, internally will create a 'customClientDatePast1' JS datetime object variable as (current date + 'x' days). This variable can then be referenced in timeDomain, displayTimeDomain and selectedTimeDomain settings to allow setting client timeDomain to for example a week ago to a week in the future from today.",
+            "example": 7
+          },
+          "customClientDaysFuture2": {
+            "$ref": "#/properties/config/properties/customClientDaysFuture1"
+          },
+          "customClientDaysFuture3": {
+            "$ref": "#/properties/config/properties/customClientDaysFuture1"
+          },
+          "customClientDaysFuture4": {
+            "$ref": "#/properties/config/properties/customClientDaysFuture1"
+          },
+          "leftPanelOpen": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/leftPanelOpen"
+          },
+          "rightPanelOpen": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/rightPanelOpen"
+          },
+          "leftPanelTabIndex": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/leftPanelTabIndex"
+          },
+          "rightPanelTabIndex": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/rightPanelTabIndex"
+          },
+          "tutorial": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/tutorial"
+          },
+          "enable3D":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/enable3D"
+          },
+          "mapMode":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/mapMode"
+          },
+          "terrainUrl":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/terrainUrl"
+          },
+          "uploadEnabled":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/uploadEnabled"
+          },
+          "areaFilterLayerExtent":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/areaFilterLayerExtent"
+          },
+          "selectFilesDownloadEnabled":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/selectFilesDownloadEnabled"
+          },
+          "downloadEnabled":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/downloadEnabled"
+          },
+          "searchEnabled":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/searchEnabled"
+          },
+          "disableTimeSlider":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/disableTimeSlider"
+          },
+          "enableDynamicHistogram":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/enableDynamicHistogram"
+          },
+          "timeSliderAlternativeBrush":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/timeSliderAlternativeBrush"
+          },
+          "language":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/language"
+          },
+          "enableSingleLayerMode":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/enableSingleLayerMode"
+          },
+          "maxTooltips":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/maxTooltips"
+          },
+          "disableSearchParams":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/disableSearchParams"
+          },
+          "enableGetEOCoverageSet":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/enableGetEOCoverageSet"
+          },
+          "maxSocketsPerHostSearch":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/maxSocketsPerHostSearch"
+          },
+          "footprintFillColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/footprintFillColor"
+          },
+          "footprintStrokeColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/footprintStrokeColor"
+          },
+          "filterFillColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/filterFillColor"
+          },
+          "filterStrokeColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/filterStrokeColor"
+          },
+          "filterOutsideColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/filterOutsideColor"
+          },
+          "selectedFootprintFillColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/selectedFootprintFillColor"
+          },
+          "selectedFootprintStrokeColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/selectedFootprintStrokeColor"
+          },
+          "highlightFillColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/highlightFillColor"
+          },
+          "highlightStrokeColor":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/highlightStrokeColor"
+          },
+          "highlightStrokeWidth":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/highlightStrokeWidth"
+          },
+          "translations":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/translations"
+          },
+          "filterSettings":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/filterSettings"
+          },
+          "downloadFormats":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/downloadFormats"
+          },
+          "multiDownloadFormats":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/multiDownloadFormats"
+          },
+          "downloadProjections":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/downloadProjections"
+          },
+          "downloadInterpolations":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/downloadInterpolations"
+          },
+          "baseLayers":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/properties/baseLayers"
+          },
+          "overlayLayers":{
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/properties/overlayLayers"
+          },
+          "tutorialHrefHtml": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/tutorialHrefHtml"
+          },
+          "tutorialHrefPDF": {
+            "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/settings/properties/tutorialHrefPDF"
+          }
+        }
+      }
+    }
+}

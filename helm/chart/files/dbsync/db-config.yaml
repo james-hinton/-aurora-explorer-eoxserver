@@ -1,0 +1,11 @@
+disableDefaultCoverageTypes: {{.Values.global.disableDefaultCoverageTypes}}
+eoxserverInstanceBasePath: {{.Values.registrar.config.eoxserverInstanceBasePath}}
+eoxserverInstanceName: {{ .Values.registrar.config.eoxserverInstanceName }}
+create: {{ .Values.global.dbsync.create }}
+replace: {{ .Values.global.dbsync.replace }}
+delete: {{ .Values.global.dbsync.delete }}
+collections: {{ toYaml .Values.global.collections | nindent 4 }}
+productTypes: {{ toYaml .Values.global.productTypes | nindent 4 }}
+coverageTypes: {{ toYaml .Values.global.coverageTypes | nindent 4 }}
+rasterStyles: {{ toYaml .Values.global.rasterStyles | nindent 4 }}
+data: {{ toYaml .Values.global.storage.data | nindent 4 }}

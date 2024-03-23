@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-scheduler.fullname" . }}
+  labels:
+    {{- include "vs-scheduler.labels" . | nindent 4 }}
+    app.kubernetes.io/service: scheduler
+spec:
+  replicas: {{ .Values.scheduler.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-scheduler.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: scheduler
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/scheduler/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-scheduler.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: scheduler
+    spec:
+      {{- with .Values.scheduler.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-scheduler.name" . }}
+          image: "{{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.scheduler.image.pullPolicy | default "IfNotPresent" }}
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}
+          args:
+            - /opt/scheduler/run-scheduler.sh
+          env:
+            - name: REDIS_HOST
+              value: {{ .Release.Name }}-redis-master
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /config.yaml
+              name: scheduler-config
+              subPath: scheduler-config.yaml
+            {{- range $volumes := .Values.scheduler.volumeMounts }}
+            - {{- toYaml $volumes | nindent 16 }}
+            {{- end }}
+      {{- with .Values.scheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: scheduler-config.yaml
+                path: scheduler-config.yaml
+            name: {{ include "vs-scheduler.fullname" . }}-config
+          name: scheduler-config
+        {{- range $volumes := .Values.scheduler.volumes }}
+        - {{- toYaml $volumes | nindent 12 }}
+        {{- end }}

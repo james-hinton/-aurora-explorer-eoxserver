@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-harvester.fullname" . }}
+  labels:
+    {{- include "vs-harvester.labels" . | nindent 4 }}
+    app.kubernetes.io/service: harvester
+spec:
+  replicas: {{ .Values.harvester.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-harvester.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: harvester
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/harvester/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-harvester.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: harvester
+    spec:
+      {{- with .Values.harvester.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-harvester.name" . }}
+          image: "{{ .Values.harvester.image.repository }}:{{ .Values.harvester.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.harvester.image.pullPolicy | default "IfNotPresent" }}
+          resources:
+            {{- toYaml .Values.harvester.resources | nindent 12 }}
+          args:
+            - /opt/harvester/run-harvester.sh
+          env:
+            - name: REDIS_HOST
+              value: {{ .Release.Name }}-redis-master
+            {{- range $key := .Values.harvester.secrets }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  key: {{ $key }}
+                  name: {{ .Release.Name }}-secrets
+            {{- end }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /config.yaml
+              name: harvester-config
+              subPath: harvester-config.yaml
+            {{- range $volumes := .Values.harvester.volumeMounts }}
+            - {{- toYaml $volumes | nindent 16 }}
+            {{- end }}
+      {{- with .Values.harvester.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: harvester-config.yaml
+                path: harvester-config.yaml
+            name: {{ include "vs-harvester.fullname" . }}-config
+          name: harvester-config
+        {{- range $volumes := .Values.harvester.volumes }}
+        - {{- toYaml $volumes | nindent 12 }}
+        {{- end }}

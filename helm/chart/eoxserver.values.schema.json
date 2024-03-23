@@ -1,0 +1,387 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://gitlab.eox.at/vs/vs/-/raw/main/chart/eoxserver.values.schema.json",
+    "type": "object",
+    "description": "VS chart EOxServer related values schema",
+    "definitions": {
+        "CollectionType": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "coverage_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "product_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "coverage_types",
+                "product_types"
+            ],
+            "title": "collection type",
+            "description": "Mapping of collection type to product types and coverage types."
+        },
+        "CoverageType": {
+            "type": "object",
+            "properties": {
+                "bands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataBand"
+                    },
+                    "minItems": 1
+                },
+                "data_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "examples": [
+                        "RGBNir"
+                    ]
+                }
+            },
+            "required": [
+                "bands",
+                "data_type",
+                "name"
+            ],
+            "title": "CoverageType",
+            "description": "Definition of a single Coverage Type",
+            "examples": [
+                {
+                    "bands": [
+                        {
+                            "definition": "http://www.opengis.net/def/property/OGC/0/Radiance",
+                            "description": "Red Channel",
+                            "gdal_interpretation": "RedBand",
+                            "identifier": "red",
+                            "name": "red",
+                            "nil_values": [
+                                {
+                                    "reason": "http://www.opengis.net/def/nil/OGC/0/unknown",
+                                    "value": 0
+                                }
+                            ],
+                            "uom": "W.m-2.Sr-1",
+                            "significant_figures": 3,
+                            "allowed_value_ranges": [
+                                [
+                                    0,
+                                    255
+                                ]
+                            ]
+                        }
+                    ],
+                    "data_type": "Byte",
+                    "name": "RGBA"
+                }
+            ]
+        },
+        "DataBand": {
+            "type": "object",
+            "properties": {
+                "definition": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "gdal_interpretation": {
+                    "type": "string"
+                },
+                "identifier": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nil_values": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/NilValue"
+                    },
+                    "minItems": 1
+                },
+                "uom": {
+                    "type": "string"
+                },
+                "significant_figures": {
+                    "type": "integer"
+                },
+                "allowed_value_ranges": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "title": "Band"
+        },
+        "NilValue": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            },
+            "title": "NilValue"
+        },
+        "ProductType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "defaultBrowse": {
+                    "type": "string"
+                },
+                "filter": {
+                    "$ref": "#/definitions/Filter"
+                },
+                "collections": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "coverages": {
+                    "$ref": "#/definitions/Coverages"
+                },
+                "browses": {
+                    "$ref": "#/definitions/Browses"
+                },
+                "masks": {
+                    "$ref": "#/definitions/Masks"
+                }
+            },
+            "required": [
+                "collections",
+                "name"
+            ],
+            "title": "ProductType"
+        },
+        "Masks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "validity": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "title": "Mask definitions"
+        },
+        "Browses": {
+            "type": "object",
+            "^.*$": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/Browse"
+                    }
+                ]
+            },
+            "title": "Browses",
+            "description": "Mapping of browses to their configurations."
+        },
+        "Browse": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "red": {
+                    "$ref": "#/definitions/ColorDef"
+                },
+                "green": {
+                    "$ref": "#/definitions/ColorDef"
+                },
+                "blue": {
+                    "$ref": "#/definitions/ColorDef"
+                },
+                "alpha": {
+                    "$ref": "#/definitions/ColorDef"
+                },
+                "grey": {
+                    "$ref": "#/definitions/ColorDef"
+                },
+                "show_out_of_bounds_data": {
+                    "type": "boolean",
+                    "description": ""
+                },
+                "styles": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Mapping of raster style name to style name"
+                }
+            },
+            "title": "Browse"
+        },
+        "ColorDef": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "range": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "nodata": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "expression",
+                "range"
+            ],
+            "title": "ColorDef",
+            "description": "Description of a single browse type band."
+        },
+        "Coverages": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "assets": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1
+                        }
+                    },
+                    "required": [
+                        "assets"
+                    ]
+                }
+            },
+            "title": "Coverages"
+        },
+        "Filter": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "string"
+                }
+            },
+            "title": "Filter"
+        },
+        "RasterStyle": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "ramp",
+                        "values",
+                        "intervals"
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "abstract": {
+                    "type": "string"
+                },
+                "colorEntries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": "number"
+                            },
+                            "color": {
+                                "type": "string",
+                                "pattern": "^#?((?:[0-F]{3}){1,2})$"
+                            },
+                            "opacity": {
+                                "type": "number"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "value",
+                            "color"
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "expression",
+                "range"
+            ]
+        }
+    },
+    "properties": {
+        "collections": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/CollectionType"
+                        }
+                    ]
+                }
+            },
+            "title": "collections",
+            "description": "Mapping of collection names and their definitions."
+        },
+        "productTypes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/ProductType"
+            },
+            "title": "Product Types",
+            "description": "Array of product types to be created."
+        },
+        "coverageTypes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/CoverageType"
+            },
+            "title": "Coverage Types",
+            "description": "Array of coverage types to be created."
+        },
+        "rasterStyles": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/RasterStyle"
+            },
+            "title": "Raster Styles",
+            "description": "Array of raster styles to be created."
+        }
+    }
+}

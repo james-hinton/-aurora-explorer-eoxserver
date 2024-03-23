@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-cache.fullname" . }}
+  labels:
+    {{- include "vs-cache.labels" . | nindent 4 }}
+    app.kubernetes.io/service: cache
+spec:
+  replicas: {{ .Values.cache.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-cache.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: cache
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/cache/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-cache.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: cache
+    spec:
+      {{- with .Values.cache.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-cache.name" . }}
+          image: "{{ .Values.cache.image.repository }}:{{ .Values.cache.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.cache.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.cache.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.cache.resources | nindent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Release.Name }}-database
+            - name: WAIT_SERVICES
+              value: "{{ .Release.Name }}-database:{{ .Values.global.env.DB_PORT }} {{ .Release.Name }}-renderer:80"
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /mapcache-template.xml
+              name: cache-config
+              subPath: mapcache.xml
+      {{- with .Values.cache.affinity  }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: mapcache.xml
+                path: mapcache.xml
+            name: {{ include "vs-cache.fullname" . }}-config
+          name: cache-config

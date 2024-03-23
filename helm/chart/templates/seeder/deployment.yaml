@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-seeder.fullname" . }}
+  labels:
+    {{- include "vs-seeder.labels" . | nindent 4 }}
+    app.kubernetes.io/service: seeder
+spec:
+  replicas: {{ .Values.seeder.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-seeder.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: seeder
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/seeder/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-seeder.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: seeder
+    spec:
+      {{- with .Values.seeder.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-seeder.name" . }}
+          image: "{{ .Values.seeder.image.repository }}:{{ .Values.seeder.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.seeder.image.pullPolicy | default "IfNotPresent" }}
+          resources:
+            {{- toYaml .Values.seeder.resources | nindent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Release.Name }}-database
+            - name: REDIS_HOST
+              value: {{ .Release.Name }}-redis-master
+            - name: WAIT_SERVICES
+              value: {{ .Release.Name }}-database:{{ .Values.global.env.DB_PORT }} {{ .Release.Name }}-redis-master:{{ .Values.global.env.REDIS_PORT }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /mapcache-template.xml
+              name: seeder-config
+              subPath: mapcache.xml
+            - mountPath: /seeder-config.yaml
+              name: seeder-config
+              subPath: seeder-config.yaml
+      {{- with .Values.seeder.affinity  }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: mapcache.xml
+                path: mapcache.xml
+              - key: seeder-config.yaml
+                path: seeder-config.yaml
+            name: {{ include "vs-seeder.fullname" . }}-config
+          name: seeder-config

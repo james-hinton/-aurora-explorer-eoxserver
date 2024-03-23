@@ -1,0 +1,4 @@
+minzoom: {{ .Values.seeder.config.minzoom }}
+maxzoom: {{ .Values.seeder.config.maxzoom }}
+nthreads: 12
+collection_grids: {{ toYaml .Values.seeder.config.collection_grids | nindent 4 }}

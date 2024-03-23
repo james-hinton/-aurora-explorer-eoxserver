@@ -1,0 +1,226 @@
+<mapcache>
+  <default_format>mixed</default_format>
+  <format name="mypng" type="PNG">
+    <compression>fast</compression>
+  </format>
+  <format name="myjpeg" type="JPEG">
+    <quality>75</quality>
+    <photometric>ycbcr</photometric>
+  </format>
+  <format name="mixed" type="MIXED">
+    <transparent>mypng</transparent>
+    <opaque>myjpeg</opaque>
+  </format>
+  {{- if .Values.cache.config.wmsEnabled }}
+  <service type="wms" enabled="true">
+    <full_wms>assemble</full_wms>
+    <resample_mode>bilinear</resample_mode>
+    <format>mixed</format>
+    <maxsize>4096</maxsize>
+  </service>
+  {{- end }}
+  {{- if .Values.cache.config.wmtsEnabled }}
+  <service type="wmts" enabled="true"/>
+  {{- end }}
+  {{- with .Values.global.metadata }}
+  <metadata>
+    <title>{{ .title }}</title>
+    <abstract>{{ .abstract }}</abstract>
+    {{- if .url }}
+    <url>{{ .url }}</url>
+    {{- end }}
+    <keywords>
+    {{- range $keyword := .keywords }}
+      <keyword>{{ $keyword }}</keyword>
+    {{ end -}}
+    </keywords>
+    <accessconstraints>{{ .accessConstraints }}</accessconstraints>
+    <fees>{{ .fees }}</fees>
+    <contactname>{{ .contactName }}</contactname>
+    <contactphone>{{ .contactPhone }}</contactphone>
+    <contactfacsimile>{{ .contactFacsimile }}</contactfacsimile>
+    <contactorganization>{{ .contactOrganization }}</contactorganization>
+    <contactcity>{{ .contactCity }}</contactcity>
+    <contactstateorprovince>{{ .contactStateOrProvince }}</contactstateorprovince>
+    <contactpostcode>{{ .contactPostcode }}</contactpostcode>
+    <contactcountry>{{ .contactCountry }}</contactcountry>
+    <contactelectronicmailaddress>{{ .contactElectronicMailAddress }}</contactelectronicmailaddress>
+    <contactposition>{{ .contactPosition }}</contactposition>
+    <providername>{{ .providerName }}</providername>
+    <providerurl>{{ .providerUrl }}</providerurl>
+    <inspire_profile>{{ .inspireProfile }}</inspire_profile>
+    <inspire_metadataurl>{{ .inspireMetadataUrl }}</inspire_metadataurl>
+    <defaultlanguage>{{ .defaultLanguage }}</defaultlanguage>
+    <language>{{ .language }}</language>
+  </metadata>
+  {{- end }}
+  <errors>empty_img</errors>
+  <lock_dir>/tmp</lock_dir>
+  <threaded_fetching>true</threaded_fetching>
+
+  {{- if .Values.global.storage.cache.type }}
+  {{ if eq .Values.global.storage.cache.type "swift" }}
+  <cache name="cache" type="swift">
+    <auth_url>{{ .Values.global.storage.cache.auth_url_short }}</auth_url>
+    <auth_version>{{ .Values.global.storage.cache.auth_version }}</auth_version>
+    <tenant>{{ .Values.global.storage.cache.project_id }}</tenant>
+    <username>{{ .Values.global.storage.cache.username }}</username>
+    <password>{{ .Values.global.storage.cache.password }}</password>
+    <container>{{ .Values.global.storage.cache.container }}</container>
+    <key>{{ .Values.cache.config.key }}</key>
+    <debug>false</debug>
+  </cache>
+  {{- else if eq .Values.global.storage.cache.type "S3" }}
+  <cache name="cache" type="s3">
+    <url>{{ .Values.global.storage.cache.endpoint_url }}{{ .Values.cache.config.key }}</url>
+    <headers>
+      <Host>{{ .Values.global.storage.cache.host }}</Host>
+    </headers>
+    <id>{{ .Values.global.storage.cache.access_key_id }}</id>
+    <secret>{{ .Values.global.storage.cache.secret_access_key }}</secret>
+    {{- if .Values.global.storage.cache.region }}
+    <region>{{ .Values.global.storage.cache.region }}</region>
+    {{- end }}
+  </cache>
+  {{- else }}
+  <cache name="cache" type="sqlite3">
+    <dbfile>/tmp/cache.db</dbfile>
+  </cache>
+  {{- end }}
+  {{- else }}
+  <cache name="cache" type="sqlite3">
+    <dbfile>/tmp/cache.db</dbfile>
+  </cache>
+  {{- end }}
+
+  {{- if .Values.global.storage.cache_extra }}
+  {{- if .Values.global.storage.cache_extra.type }}
+  {{ if eq .Values.global.storage.cache_extra.type "swift" }}
+  <cache name="cache_extra" type="swift">
+    <auth_url>{{ .Values.global.storage.cache_extra.auth_url_short }}</auth_url>
+    <auth_version>{{ .Values.global.storage.cache_extra.auth_version }}</auth_version>
+    <tenant>{{ .Values.global.storage.cache_extra.project_id }}</tenant>
+    <username>{{ .Values.global.storage.cache_extra.username }}</username>
+    <password>{{ .Values.global.storage.cache_extra.password }}</password>
+    <container>{{ .Values.global.storage.cache_extra.container }}</container>
+    <key>{{ .Values.cache.config.extra_key }}</key>
+    <debug>false</debug>
+  </cache>
+  {{- else if eq .Values.global.storage.cache_extra.type "S3" }}
+  <cache name="cache_extra" type="s3">
+    <url>{{ .Values.global.storage.cache_extra.endpoint_url }}{{ .Values.cache.config.extra_key }}</url>
+    <headers>
+      <Host>{{ .Values.global.storage.cache_extra.host }}</Host>
+    </headers>
+    <id>{{ .Values.global.storage.cache_extra.access_key_id }}</id>
+    <secret>{{ .Values.global.storage.cache_extra.secret_access_key }}</secret>
+    {{- if .Values.global.storage.cache_extra.region }}
+    <region>{{ .Values.global.storage.cache_extra.region }}</region>
+    {{- end }}
+  </cache>
+  {{- else }}
+  <cache name="cache_extra" type="sqlite3">
+    <dbfile>/tmp/cache.db</dbfile>
+  </cache>
+  {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- $parentLayers := list -}}
+  {{- $subLayersMap := dict -}}
+  {{- range $layer := .Values.global.layers }}
+  {{- if eq $layer.id $layer.parentLayer }}
+  {{- $parentLayers = append $parentLayers $layer.id }}
+  {{- end }}
+  {{- end }}
+  {{- range $parentLayer := $parentLayers -}}
+  {{- $subLayers := list }}
+  {{- range $layer := $.Values.global.layers -}}
+  {{- if and (eq $layer.parentLayer $parentLayer) (not (eq $layer.id $parentLayer)) -}}
+  {{- $subLayers = append $subLayers $layer }}
+  {{- end }}
+  {{- end }}
+  {{- $_ := set $subLayersMap $parentLayer $subLayers -}}
+  {{- end }}
+
+  {{- range $layer := .Values.global.layers }}
+  {{- if not (and (eq $layer.parentLayer $layer.id) (get $subLayersMap $layer.id)) }}
+  <source type="wms" name="{{ $layer.id }}">
+    <getmap>
+      <params>
+        <LAYERS>{{ $layer.id }}</LAYERS>
+        <TRANSPARENT>true</TRANSPARENT>
+        <STYLES>{{ $layer.style }}</STYLES>
+      </params>
+    </getmap>
+    <http>
+      {{- if $.Values.global.ingress.prefix.enabled }}
+      <url>http://{{ $.Values.global.env.RENDERER_HOST | default (printf "%s-renderer" $.Release.Name) }}/{{ $.Values.global.ingress.prefix.value }}/ows</url>
+      {{- else }}
+      <url>http://{{ $.Values.global.env.RENDERER_HOST | default (printf "%s-renderer" $.Release.Name) }}/ows</url>
+      {{- end }}
+      <connection_timeout>{{ $.Values.cache.config.connectionTimeout }}</connection_timeout>
+      <timeout>{{ $.Values.cache.config.timeout }}</timeout>
+    </http>
+  </source>
+  <tileset name="{{ $layer.id }}">
+    <metadata>
+      <title>{{ $layer.title }}</title>
+      <abstract>{{ $layer.abstract }}</abstract>
+    </metadata>
+    <source>{{ $layer.id }}</source>
+    <cache>cache</cache>
+    {{- $grids := $layer.grids }}
+    {{- if $grids }}
+    {{- range $grid := $grids }}
+    <grid max-cached-zoom="{{ $grid.zoom }}" out-of-zoom-strategy="reassemble">{{ $grid.name }}</grid>
+    {{- end }}
+    {{- else }}
+    <grid max-cached-zoom="10" out-of-zoom-strategy="reassemble">WGS84</grid>
+    {{- end }}
+    <format>mixed</format>
+    <metatile>1 1</metatile>
+    <metabuffer>1</metabuffer>
+    <expires>{{ $.Values.cache.config.expires }}</expires>
+    <dimensions>
+      <assembly_type>stack</assembly_type>
+      <store_assemblies>false</store_assemblies>
+      <subdimensions_read_only>false</subdimensions_read_only>
+      <dimension type="postgresql" name="time" default="2017/2019" time="true" unit="ISO8601">
+        <connection>host={{ $.Values.global.env.DB_HOST | default (printf "%s-database" $.Release.Name) }} user={{ $.Values.global.env.DB_USER }} password={{ $.Values.global.env.DB_PW }} dbname={{ $.Values.global.env.DB_NAME }} port={{ $.Values.global.env.DB_PORT }}</connection>
+        <list_query>SELECT to_char(MIN(mapcache_items.begin_time), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '/' || to_char(MAX(mapcache_items.end_time), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') FROM mapcache_items WHERE mapcache_items.collection = '{{ $layer.parentLayer }}';</list_query>
+        <validate_query>SELECT * FROM (SELECT to_char(mapcache_items.begin_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '/' || to_char(mapcache_items.end_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "interval" FROM mapcache_items WHERE (mapcache_items.collection = '{{ $layer.parentLayer }}' AND ((mapcache_items."begin_time" &lt; to_timestamp(:end_timestamp) AND mapcache_items."end_time" &gt; to_timestamp(:start_timestamp)) or (mapcache_items."begin_time" = mapcache_items."end_time" AND mapcache_items."begin_time" &lt;= to_timestamp(:end_timestamp) AND mapcache_items."end_time" &gt;= to_timestamp(:start_timestamp)))) AND mapcache_items."footprint" &amp;&amp; ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, CAST(SUBSTRING(:gridsrs, 6) AS INTEGER)), 4326) ORDER BY mapcache_items."end_time" DESC LIMIT 20) AS sub ORDER BY interval ASC;</validate_query>
+      </dimension>
+    </dimensions>
+  </tileset>
+  {{- end }}
+  {{- end }}
+
+  {{- range $layer := .Values.global.overlayLayers }}
+  {{- if $layer.source }}
+  <tileset name="{{ $layer.id }}">
+    <metadata>
+      <title>{{ $layer.title }}</title>
+      <abstract>{{ $layer.abstract }}</abstract>
+    </metadata>
+    <source>{{ $layer.source }}</source>
+    <cache>cache_extra</cache>
+    {{- $grids := $layer.grids }}
+    {{- if $grids }}
+    {{- range $grid := $grids }}
+    <grid max-cached-zoom="{{ $grid.zoom }}" out-of-zoom-strategy="reassemble"
+    {{- if hasKey $grid "restricted_extent" }} restricted_extent="{{$grid.restricted_extent}}"{{- end }}
+    >{{ $grid.name }}</grid>
+    {{- end }}
+    {{- else }}
+    <grid max-cached-zoom="10" out-of-zoom-strategy="reassemble">WGS84</grid>
+    {{- end }}
+    <format>mixed</format>
+    <metatile>1 1</metatile>
+    <metabuffer>1</metabuffer>
+    <expires>{{ $.Values.cache.config.expires }}</expires>
+  </tileset>
+  {{- end }}
+  {{- end }}
+
+</mapcache>

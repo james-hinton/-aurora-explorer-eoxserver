@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-preprocessor.fullname" . }}
+  labels:
+    {{- include "vs-preprocessor.labels" . | nindent 4 }}
+    app.kubernetes.io/service: preprocessor
+spec:
+  replicas: {{ .Values.preprocessor.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-preprocessor.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: preprocessor
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/preprocessor/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-preprocessor.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: preprocessor
+    spec:
+      {{- with .Values.preprocessor.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-preprocessor.name" . }}
+          image: "{{ .Values.preprocessor.image.repository }}:{{ .Values.preprocessor.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.preprocessor.image.pullPolicy | default "IfNotPresent" }}
+          resources:
+            {{- toYaml .Values.preprocessor.resources | nindent 12 }}
+          env:
+            - name: REDIS_HOST
+              value: {{ .Release.Name }}-redis-master
+            {{- range $key := .Values.preprocessor.secrets }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  key: {{ $key }}
+                  name: {{ .Release.Name }}-secrets
+            {{- end }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /config.yaml
+              name: preprocessor-config
+              subPath: preprocessor-config.yaml
+            {{- range $volumes := .Values.preprocessor.volumeMounts }}
+            -{{- toYaml $volumes | nindent 16 -}}
+            {{- end -}}
+      {{- with .Values.preprocessor.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: preprocessor-config.yaml
+                path: preprocessor-config.yaml
+            name: {{ include "vs-preprocessor.fullname" . }}-config
+          name: preprocessor-config
+        {{- range $volumes := .Values.preprocessor.volumes }}
+        -{{- toYaml $volumes | nindent 12 -}}
+        {{- end }}

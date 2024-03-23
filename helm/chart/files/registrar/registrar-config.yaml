@@ -1,0 +1,73 @@
+sources:
+{{- range $name, $val := .Values.global.storage.data }}
+{{- $type := ($val.type | lower ) }}
+  - type: {{ $type }}
+    name: {{ $name }}
+    filter: {{ .filter }}
+    kwargs:
+    {{- if eq $type "swift" }}
+      username: {{ template "vs.envVarQuote" $val.username }}
+      password: {{ template "vs.envVarQuote" $val.password }}
+      project_name: {{ template "vs.envVarQuote" $val.project_name }}
+      project_id: {{ template "vs.envVarQuote" $val.project_id }}
+      region_name: {{ template "vs.envVarQuote" $val.region_name }}
+      auth_url: {{ template "vs.envVarQuote" $val.auth_url }}
+      auth_version: {{ $val.auth_version }}
+      user_domain_name: {{ template "vs.envVarQuote" $val.user_domain_name }}
+      user_domain_id: {{ template "vs.envVarQuote" $val.user_domain_id }}
+      project_domain_name: {{ template "vs.envVarQuote" $val.project_domain_name }}
+      project_domain_id: {{ template "vs.envVarQuote" $val.project_domain_id }}
+      {{- if $val.container }}
+      container: {{ template "vs.envVarQuote" $val.container }}
+      streaming: {{ $val.streaming | default "false" }}
+      {{- end }}
+    {{- else if eq $type "s3" }}
+      bucket_name: {{ $val.bucket | default "null" }}
+      endpoint_url: {{ $val.endpoint_url | default "null" }}
+      access_key_id: {{ $val.access_key_id }}
+      public: {{ $val.public | default "false" }}
+      region_name: {{ $val.region_name }}
+      secret_access_key: {{ $val.secret_access_key }}
+      validate_bucket_name: {{ if hasKey $val "validate_bucket_name" }}{{ $val.validate_bucket_name }}{{ else }}true{{ end }}
+      streaming: {{ $val.streaming | default "false" }}
+    {{- else if eq $type "http" }}
+      endpoint_url: {{ $val.endpoint_url | default "null" }}
+      streaming: {{ $val.streaming | default "false" }}
+    {{- else if eq $type "directory" }}
+      root_directory: {{ $val.root_directory | default "null" }}
+    {{- end }}
+{{- end }}
+routes:
+  {{- if not ( .Values.registrar.config.disableDefaultRoute ) }}
+  items:
+    path: registrar.route.stac.ItemRoute
+    queue: {{ .Values.registrar.config.defaultQueue | default "register" }}
+    {{ if .Values.registrar.config.defaultSuccessQueue -}} success_queue: {{ .Values.registrar.config.defaultSuccessQueue }} {{- end }}
+    {{ if .Values.registrar.config.defaultErrorQueue -}} error_queue: {{ .Values.registrar.config.defaultErrorQueue }} {{- end }}
+    {{ if .Values.registrar.config.defaultReplace -}} replace: {{ .Values.registrar.config.defaultReplace }} {{- end }}
+    backends:
+      - path: registrar.backend.eoxserver.ItemBackend
+        kwargs:
+          instance_base_path: {{ .Values.registrar.config.eoxserverInstanceBasePath }}
+          instance_name: {{ .Values.registrar.config.eoxserverInstanceName }}
+          {{ if .Values.registrar.config.simplifyFootprintTolerance -}} simplify_footprint_tolerance: {{ .Values.registrar.config.simplifyFootprintTolerance }} {{- end }}
+          product_types:
+          {{- range $prod_type_val := .Values.global.productTypes -}}
+          {{- if ( $.Values.registrar.config.removeBrowsesFromConfig ) }}
+            {{- $prod_type_val := unset $prod_type_val "browses" }}
+          {{- end }}
+          {{- $prod_type_val := unset $prod_type_val "styles" }}
+          {{- $prod_type_val := unset $prod_type_val "defaultBrowse" }}
+          -{{- toYaml $prod_type_val | nindent 14 -}}
+          {{- end -}}
+      {{- if .Values.registrar.config.defaultBackends }}
+        {{- toYaml .Values.registrar.config.defaultBackends | nindent 8 }}
+      {{- end }}
+    {{- if .Values.registrar.config.defaultHandlers }}
+    handlers:
+      {{- toYaml .Values.registrar.config.defaultHandlers | nindent 8 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.registrar.config.routes }}
+  {{- toYaml .Values.registrar.config.routes | nindent 4 -}}
+  {{- end }}

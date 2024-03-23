@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vs-registrar.fullname" . }}-config
+data:
+  {{ (tpl (.Files.Glob "files/registrar/registrar-config.yaml").AsConfig . ) | nindent 2}}

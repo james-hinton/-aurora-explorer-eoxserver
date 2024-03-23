@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <meta charset="UTF-8">
+        <title>{{ .Values.global.metadata.title }}</title>
+        <link rel="icon" href="//eox.at/favicon.ico" type="image/x-icon">
+        <link rel="icon" sizes="16x16" href="//eox.at/favicon-16x16.png" type="image/png">
+        <link rel="icon" sizes="32x32" href="//eox.at/favicon-32x32.png" type="image/png">
+        <link rel="apple-touch-icon" sizes="180x180" href="//eox.at/apple-touch-icon.png" type="image/png">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#004170">
+    </head>
+    <body>
+        {{ .Values.client.config.clientHeaderHTML }}
+        <div id="app" style="width: 100%; top: {{.Values.client.config.clientHeaderHeight}}; bottom: 0; position: absolute; margin: 0; padding:0;"></div>
+        <script src="vsclient.js"></script>
+        <script>
+            var baseUrl = '//' + window.location.hostname + '/';
+            {{- $baseUrlFromIngress := "" -}}
+            {{- if .Values.global.ingress.tls -}}
+            {{- if (index .Values.global.ingress.tls 0).hosts -}}
+            {{- $baseUrlFromIngress = index (index .Values.global.ingress.tls 0).hosts 0 }}
+            baseUrl = '//{{ $baseUrlFromIngress }}/';
+            {{- end }}
+            {{- end }}
+            {{- if .Values.global.ingress.prefix.enabled }}
+            baseUrl = '/{{ .Values.global.ingress.prefix.value }}/';
+            {{- end }}
+            {{- if .Values.client.config.serviceUrl }}
+            baseUrl = {{ .Values.client.config.serviceUrl | quote }};
+            {{- end }}
+            var baseUrlsWMTS = [
+                baseUrl + 'cache/ows/wmts',
+            ];
+            var baseUrlsOws = [
+                baseUrl + 'ows',
+            ];
+            var customStyles = [
+                {"value": "earth"},
+                {"value": "",
+                 "label": "default"},
+                {"value": "blackbody"},
+                {"value": "summer"},
+                {"value": "coolwarm"},
+                {"value": "copper"},
+                {"value": "spring"},
+                {"value": "viridis"},
+                {"value": "diverging_1"},
+                {"value": "diverging_2"},
+                {"value": "autumn"},
+                {"value": "magma"},
+                {"value": "yiorrd"},
+                {"value": "portland"},
+                {"value": "bluered"},
+                {"value": "rainbow"},
+                {"value": "winter"},
+                {"value": "jet"},
+                {"value": "rdbu"},
+                {"value": "hot"},
+                {"value": "inferno"},
+                {"value": "plasma"},
+                {"value": "electric"},
+                {"value": "greys"},
+                {"value": "hsv"},
+                {"value": "cool"},
+                {"value": "picnic"},
+                {"value": "greens"},
+                {"value": "blackwhite"},
+                {"value": "yignbu"},
+                {"value": "bone"}
+            ];
+            var today = new Date();
+            today.setUTCHours(24, 0, 0, 0);
+            {{- if hasKey .Values.client.config "customClientDaysPast1" }}
+            var customClientDatePast1 = new Date(new Date(today).setUTCDate(today.getUTCDate() - {{ .Values.client.config.customClientDaysPast1 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysPast2" }}
+            var customClientDatePast2 = new Date(new Date(today).setUTCDate(today.getUTCDate() - {{ .Values.client.config.customClientDaysPast2 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysPast3" }}
+            var customClientDatePast3 = new Date(new Date(today).setUTCDate(today.getUTCDate() - {{ .Values.client.config.customClientDaysPast3 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysPast4" }}
+            var customClientDatePast4 = new Date(new Date(today).setUTCDate(today.getUTCDate() - {{ .Values.client.config.customClientDaysPast4 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysFuture1" }}
+            var customClientDateFuture1 = new Date(new Date(today).setUTCDate(today.getUTCDate() + {{ .Values.client.config.customClientDaysFuture1 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysFuture2" }}
+            var customClientDateFuture2 = new Date(new Date(today).setUTCDate(today.getUTCDate() + {{ .Values.client.config.customClientDaysFuture2 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysFuture3" }}
+            var customClientDateFuture3 = new Date(new Date(today).setUTCDate(today.getUTCDate() + {{ .Values.client.config.customClientDaysFuture3 }}));
+            {{- end }}
+            {{- if hasKey .Values.client.config "customClientDaysFuture4" }}
+            var customClientDateFuture4 = new Date(new Date(today).setUTCDate(today.getUTCDate() + {{ .Values.client.config.customClientDaysFuture4 }}));
+            {{- end }}
+            var config = {
+                "settings": {
+                    "rightPanelOpen": {{ .Values.client.config.rightPanelOpen}},
+                    "leftPanelOpen": {{ .Values.client.config.leftPanelOpen}},
+                    "leftPanelTabIndex": {{ .Values.client.config.leftPanelTabIndex}},
+                    "rightPanelTabIndex": {{ .Values.client.config.rightPanelTabIndex}},
+                    "tutorial": {{ .Values.client.config.tutorial | quote}},
+                    "tutorialHrefHtml": {{ .Values.client.config.tutorialHrefHtml | quote}},
+                    "tutorialHrefPDF": {{ .Values.client.config.tutorialHrefPDF | quote}},
+                    "enable3D": {{.Values.client.config.enable3D}},
+                    "mapMode": {{ .Values.client.config.mapMode | quote }},
+                    {{- if .Values.client.config.terrainUrl }}
+                    "terrainUrl": {{ .Values.client.config.terrainUrl }},
+                    {{- end }}
+                    "uploadEnabled": {{.Values.client.config.uploadEnabled }},
+                    "areaFilterLayerExtent": {{.Values.client.config.areaFilterLayerExtent}},
+                    "selectFilesDownloadEnabled": {{.Values.client.config.selectFilesDownloadEnabled }},
+                    "downloadEnabled": {{.Values.client.config.downloadEnabled }},
+                    "searchEnabled": {{.Values.client.config.searchEnabled }},
+                    "disableTimeSlider": {{.Values.client.config.disableTimeSlider }},
+                    "enableDynamicHistogram": {{.Values.client.config.enableDynamicHistogram }},
+                    "timeSliderAlternativeBrush": {{.Values.client.config.timeSliderAlternativeBrush }},
+                    "searchDebounceTime": {{.Values.client.config.searchDebounceTime }},
+                    "language": {{.Values.client.config.language | quote }},
+                    "timeDomain": {{ .Values.client.config.timeDomain | toRawJson | replace "\"today\"" "today" | replace "\"customClientDatePast1\"" "customClientDatePast1" | replace "\"customClientDatePast2\"" "customClientDatePast2" | replace "\"customClientDatePast3\"" "customClientDatePast3" | replace "\"customClientDatePast4\"" "customClientDatePast4" | replace "\"customClientDateFuture1\"" "customClientDateFuture1" | replace "\"customClientDateFuture2\"" "customClientDateFuture2" | replace "\"customClientDateFuture3\"" "customClientDateFuture3" | replace "\"customClientDateFuture4\"" "customClientDateFuture4"}},
+                    "constrainTimeDomain": true,
+                    "displayTimeDomain": {{ .Values.client.config.displayTimeDomain | toRawJson | replace "\"today\"" "today" | replace "\"customClientDatePast1\"" "customClientDatePast1" | replace "\"customClientDatePast2\"" "customClientDatePast2" | replace "\"customClientDatePast3\"" "customClientDatePast3" | replace "\"customClientDatePast4\"" "customClientDatePast4" | replace "\"customClientDateFuture1\"" "customClientDateFuture1" | replace "\"customClientDateFuture2\"" "customClientDateFuture2" | replace "\"customClientDateFuture3\"" "customClientDateFuture3" | replace "\"customClientDateFuture4\"" "customClientDateFuture4"}},
+                    "displayInterval": {{ .Values.client.config.displayInterval | quote }},
+                    "selectedTimeDomain": {{ .Values.client.config.selectedTimeDomain | toRawJson | replace "\"today\"" "today" | replace "\"customClientDatePast1\"" "customClientDatePast1" | replace "\"customClientDatePast2\"" "customClientDatePast2" | replace "\"customClientDatePast3\"" "customClientDatePast3" | replace "\"customClientDatePast4\"" "customClientDatePast4" | replace "\"customClientDateFuture1\"" "customClientDateFuture1" | replace "\"customClientDateFuture2\"" "customClientDateFuture2" | replace "\"customClientDateFuture3\"" "customClientDateFuture3" | replace "\"customClientDateFuture4\"" "customClientDateFuture4"}},
+                    "selectableInterval": {{ .Values.client.config.selectableInterval | quote }},
+                    "timeSliderControls": {{ .Values.client.config.timeSliderControls }},
+                    "enableSingleLayerMode": {{ .Values.client.config.enableSingleLayerMode }},
+                    "maxTooltips": {{ .Values.client.config.maxTooltips }},
+                    "center": {{ .Values.client.config.center | toRawJson }},
+                    "zoom": {{ .Values.client.config.zoom }},
+                    "minZoom": {{ .Values.client.config.minZoom }},
+                    "maxZoom": {{ .Values.client.config.maxZoom }},
+                    {{- if .Values.client.config.heightFactor }}
+                    "heightFactor": {{ .Values.client.config.heightFactor }},
+                    {{- end }}
+                    "disableSearchParams": {{ .Values.client.config.disableSearchParams }},
+                    "enableGetEOCoverageSet": {{ .Values.client.config.enableGetEOCoverageSet }},
+                    "maxSocketsPerHostSearch": {{.Values.client.config.maxSocketsPerHostSearch }},
+                    "footprintFillColor": {{ .Values.client.config.footprintFillColor | quote }},
+                    "footprintStrokeColor": {{ .Values.client.config.footprintStrokeColor | quote }},
+                    "filterFillColor": {{ .Values.client.config.filterFillColor | quote }},
+                    "filterStrokeColor": {{ .Values.client.config.filterStrokeColor | quote }},
+                    "filterOutsideColor": {{ .Values.client.config.filterOutsideColor | quote }},
+                    "selectedFootprintFillColor": {{ .Values.client.config.selectedFootprintFillColor | quote }},
+                    "selectedFootprintStrokeColor": {{ .Values.client.config.selectedFootprintStrokeColor | quote }},
+                    "highlightFillColor": {{ .Values.client.config.highlightFillColor | quote }},
+                    "footprintStrokeColor": {{ .Values.client.config.footprintStrokeColor | quote }},
+                    "highlightStrokeColor": {{ .Values.client.config.highlightStrokeColor | quote }},
+                    "highlightStrokeWidth": {{ .Values.client.config.highlightStrokeWidth }},
+                    {{- if .Values.client.config.footprintLabel }}
+                    "footprintLabel": {{ .Values.client.config.footprintLabel | toRawJson }},
+                    {{- end }}
+                    "translations": {{ .Values.client.config.translations | toRawJson }},
+                    "filterSettings": {{ .Values.client.config.filterSettings | toRawJson }},
+                    "downloadFormats": {{ .Values.client.config.downloadFormats | toRawJson }},
+                    "multiDownloadFormats": {{ .Values.client.config.multiDownloadFormats | toRawJson }},
+                    "downloadProjections": {{ .Values.client.config.downloadProjections | toRawJson }},
+                    "downloadInterpolations": {{ .Values.client.config.downloadInterpolations | toRawJson }},
+                },
+                "baseLayers": {{ .Values.client.config.baseLayers | toRawJson }},
+                "layers": {{- if .Values.client.config.layers }}{{ (.Values.client.config.layers | toRawJson) | replace "\"baseUrlsOws\"" "baseUrlsOws" | replace "\"baseUrlsWMTS\"" "baseUrlsWMTS" | replace "\"customStyles\"" "customStyles" }},
+                {{- else }} [ {{/* Create subLayers for client */}}
+                    {{- $parentLayers := list -}}
+                    {{- $subLayersMap := dict -}}
+                    {{- range $layer := .Values.global.layers }}
+                    {{- if eq $layer.id $layer.parentLayer }}
+                    {{- $parentLayers = append $parentLayers $layer.id }}
+                    {{- end }}
+                    {{- end }}
+                    {{- range $parentLayer := $parentLayers -}}
+                    {{- $subLayers := list }}
+                    {{- range $layer := $.Values.global.layers -}}
+                    {{- if and (eq $layer.parentLayer $parentLayer) (not (eq $layer.id $parentLayer)) -}}
+                    {{- $subLayers = append $subLayers $layer }}
+                    {{- end }}
+                    {{- end }}
+                    {{- $_ := set $subLayersMap $parentLayer $subLayers -}}
+                    {{- end }}
+
+                    {{- range $layer := .Values.global.layers }}
+                    {{- if and (eq $layer.parentLayer $layer.id) (not $layer.disableInClient) }}
+                    {
+                        "id": {{ $layer.id | quote }},
+                        "displayName": {{ $layer.title | default $layer.id | quote }},
+                        "displayColor": {{ $layer.displayColor | default "#eb3700" | quote }},
+                        {{- if $layer.display }}
+                        // customized display
+                        "display": {{ ($layer.display | toRawJson) | replace "\"baseUrlsOws\"" "baseUrlsOws" | replace "\"baseUrlsWMTS\"" "baseUrlsWMTS" | replace "\"customStyles\"" "customStyles" }},
+                        {{- else }}
+                        // default display
+                        "display": {
+                            "id": {{ if get $subLayersMap $layer.id }}{{ (first (get $subLayersMap $layer.id)).id | quote }}{{ else }}{{ $layer.id | quote }}{{- end }},
+                            "visible": {{ hasKey $layer "visible" | ternary $layer.visible true }},
+                            "description": {{ $layer.description | default "" | quote }},
+                            "protocol": {{ $layer.protocol | default "WMTS" | quote }},
+                            "urls": {{ $layer.urls | default "baseUrlsWMTS" }},
+                            "format": {{ $layer.format | default "image/png" | quote }},
+                            "projection": {{ $layer.projection | default "EPSG:4326" | quote }},
+                            "matrixSet": {{ if eq ($layer.projection | default "EPSG:4326") "EPSG:4326" }}"WGS84"{{ else }}{{ $layer.matrixSet | quote}}{{ end }},
+                            "style": {{ if eq ($layer.protocol | default "WMTS") "WMTS" }}"default"{{ else if hasKey $layer "clientLayerStyle"}}{{$layer.clientLayerStyle | quote}}{{else}}"red"{{ end }},
+                            "useMilliseconds": {{ $layer.useMilliseconds | default false }},
+                            {{- if hasKey $layer "adjustTime" }}
+                            "adjustTime": {{ $layer.adjustTime }},
+                            {{- end }}
+                            "minZoom": {{ $layer.minZoom | default "1"}},
+                            "maxZoom": {{ $layer.maxZoom | default "17"}},
+                            "tileSize": {{ $layer.tileSize | default 256 }},
+                            {{- if $layer.attribution }}
+                            "attribution": {{ $layer.attribution | toRawJson }},
+                            {{- end }}
+                            "infoPopup": {{ $layer.infoPopup | default true }},
+                            {{- if get $subLayersMap $layer.id }}
+                            "options": [{
+                                "name": "Style",
+                                "target": "display.extraParameters.LAYERS",
+                                "values": [
+                                    {{- range $subLayer := get $subLayersMap $layer.id }}
+                                    {
+                                        "label": {{ $subLayer.title | default $subLayer.id | quote }},
+                                        "value": {{ $subLayer.id | quote }}
+                                    },
+                                    {{- end }}
+                                ]
+                            }],
+                            {{- end }}
+                        },
+                        {{- end}}
+                        {{- if $layer.detailsDisplay }}
+                        // customized detailsDisplay
+                        "detailsDisplay": {{ $layer.detailsDisplay | toRawJson | replace "\"baseUrlsOws\"" "baseUrlsOws" | replace "\"baseUrlsWMTS\"" "baseUrlsWMTS" | replace "\"customStyles\"" "customStyles" }},
+                        {{- end}}
+                        "search": {
+                            "protocol": "OpenSearch",
+                            "url": baseUrl + "opensearch/collections/{{ $layer.id }}/",
+                            "id": {{ $layer.id | quote }},
+                            "searchEnabled": {{ ( $layer.search | default dict ).searchEnabled | default true }},
+                            "histogramBinCount": {{ ( $layer.search | default dict ).histogramBinCount | default 28 }},
+                            "format": "application/atom+xml",
+                            "method": "GET",
+                            "histogramThreshold": {{ ( $layer.search | default dict ).histogramThreshold | default 600 }},
+                            "lightweightBuckets": true,
+                            "searchLimit": {{ ( $layer.search | default dict ).searchLimit | default 600 }},
+                            "loadMore": {{ ( $layer.search | default dict ).loadMore | default 600 }},
+                            "pageSize": {{ ( $layer.search | default dict ).pageSize | default 200 }},
+                            "countZeroRecords": true,
+                            "parameters": {{- if ( $layer.search | default dict ).parameters }} {{ $layer.search.parameters | toRawJson }},
+                            {{- else }} [{
+                                    "max": 100,
+                                    "min": 0,
+                                    "step": 1,
+                                    "range": true,
+                                    "type": "eo:cloudCover",
+                                    "name": "Cloud Coverage",
+                                    "title": "Cloud Coverage in percent"
+                                },
+                                {
+                                    "type": "geo:uid",
+                                    "title": "Product ID",
+                                    "privileged": true,
+                                }],
+                                {{- end }}
+                            "parametersFilterSettings": {
+                                "collapsed": false,
+                            },
+                            "extraFields": {
+                                "properties.coverages": ["eoxs:coverageId/text()", false],
+                            },
+                            "extraFieldsNamespaces": {
+                                "eoxs": "http://eoxserver.org/eoxs/1.0",
+                            },
+                            {{- if ( $layer.search | default dict ).iframeUrlTemplate }}
+                            "iframeUrlTemplate": {{ $layer.search.iframeUrlTemplate }},
+                            {{- end }}
+                        },
+                        {{- if $.Values.client.config.eoxserverDownloadEnabled }}
+                        "download": {
+                            "protocol": "EO-WCS",
+                            "url": baseUrl + "ows",
+                            {{- if ( $layer.download | default dict ).wcsExtensionsKVPParameters }}
+                            "wcsExtensionsKVPParameters":{{ $layer.download.wcsExtensionsKVPParameters | toRawJson }},
+                            {{- end }}
+                            {{- if ( $layer.download | default dict ).wcsExtensionsXMLParameters }}
+                            "wcsExtensionsXMLParameters":{{ $layer.download.wcsExtensionsXMLParameters | toRawJson }},
+                            {{- end }}
+                            {{- if ( $layer.download | default dict ).wcsExtensionsXMLNamespaces }}
+                            "wcsExtensionsXMLNamespaces": {{ $layer.download.wcsExtensionsXMLNamespaces | toRawJson }},
+                            {{- end }}
+                        },
+                        {{- else if ( $layer.download | default false ) }}
+                        "download": {{ $layer.download | toRawJson }},
+                        {{- end }}
+                        {{- if $layer.wpsProcessing }}
+                        // customized wpsProcessing
+                        "wpsProcessing": {{ $layer.wpsProcessing | toRawJson | replace "\"baseUrlsOws\"" "baseUrlsOws"}},
+                        {{- end}}
+                    },
+                    {{- end }}
+                    {{- end }}
+                ],
+                {{- end }}
+                "overlayLayers": {{ .Values.client.config.overlayLayers | toRawJson }}.concat([
+                {{- range $layer := .Values.global.overlayLayers }}
+                {
+                    "id": {{ $layer.id | quote }},
+                    "displayName": {{ $layer.title | default $layer.id | quote }},
+                    {{- if $layer.display }}
+                    // customized display
+                    "display": {{ ($layer.display | toRawJson) | replace "\"baseUrlsOws\"" "baseUrlsOws" | replace "\"baseUrlsWMTS\"" "baseUrlsWMTS" | replace "\"customStyles\"" "customStyles" }},
+                    {{- else }}
+                    "display": {
+                        "id": {{ $layer.id | quote }},
+                        "visible": {{ hasKey $layer "visible" | ternary $layer.visible false }},
+                        "description": {{ $layer.description | default "" | quote }},
+                        "protocol": {{ $layer.protocol | default "WMS" | quote }},
+                        "urls": {{ $layer.urls | default "baseUrlsOws" | quote | replace "\"baseUrlsOws\"" "baseUrlsOws" | replace "\"baseUrlsWMTS\"" "baseUrlsWMTS" }},
+                        "format": {{ $layer.format | default "image/png" | quote }},
+                        "tileSize": {{ $layer.tileSize | default 256 }},
+                        "infoPopup": {{ $layer.infoPopup | default true }},
+                        {{- if $layer.attribution }}
+                        "attribution": {{ $layer.attribution | toRawJson }},
+                        {{- end }}
+                        "projection": {{ $layer.projection | default "EPSG:4326" | quote }},
+                        "style": {{ if eq ($layer.protocol | default "WMS") "WMTS" }}"default"{{ else if hasKey $layer "style"}}{{$layer.style | quote}}{{else}}"red"{{ end }},
+                        {{- if eq ($layer.protocol | default "WMS") "WMTS" }}
+                        "matrixSet": {{ if eq ($layer.projection | default "EPSG:4326") "EPSG:4326" }}"WGS84"{{ else }}{{ $layer.matrixSet | quote }}{{ end }},
+                        {{- end }}
+                        "useMilliseconds": {{ $layer.useMilliseconds | default false }},
+                        {{- if hasKey $layer "adjustTime" }}
+                        "adjustTime": {{ $layer.adjustTime }},
+                        {{- end }}
+                        "minZoom": {{ $layer.minZoom | default "1"}},
+                        "maxZoom": {{ $layer.maxZoom | default "17"}},
+                        "synchronizeTime": {{ hasKey $layer "synchronizeTime" | ternary $layer.synchronizeTime true }},
+                    },
+                    {{- end }}
+                },
+                {{- end }}
+                ])
+            };
+            var app = new Application({
+                config: config,
+                container: document.getElementById('app'),
+            });
+            app.start();
+        </script>
+    </body>
+</html>

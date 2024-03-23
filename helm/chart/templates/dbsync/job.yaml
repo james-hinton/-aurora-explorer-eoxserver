@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "vs-dbsync.fullname" . }}
+  labels:
+    {{- include "vs-dbsync.labels" . | nindent 4 }}
+    app.kubernetes.io/service: dbsync
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/config-db-config: {{ include (print $.Template.BasePath "/dbsync/db-config-configmap.yaml") . | sha256sum }}
+        "helm.sh/hook": "post-install"
+        "helm.sh/hook-weight": "1"
+      labels:
+        {{- include "vs-dbsync.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: dbsync
+    spec:
+      {{- with .Values.dbsync.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: {{ .Values.dbsync.restartPolicy | default "Never" }}
+      containers:
+        - name: {{ include "vs-dbsync.name" . }}
+          image: "{{ .Values.dbsync.image.repository }}:{{ .Values.dbsync.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.dbsync.image.pullPolicy | default "IfNotPresent" }}
+          command: ["/bin/bash","-c","/opt/core/entrypoint.sh && python3 /opt/core/dbsync.py /opt/core/db-config.yaml"]
+          env:
+            - name: DB_HOST
+              value: {{ .Release.Name }}-database
+            - name: INIT_SCRIPTS
+              value: /opt/core/configure.sh
+            - name: STARTUP_SCRIPTS
+              value: {{- range $script := .Values.global.env.startup_scripts }} {{ $script }}{{ end }}
+            - name: WAIT_SERVICES
+              value: {{ .Release.Name }}-database:{{ .Values.global.env.DB_PORT }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-django-secret-key
+          volumeMounts:
+            - mountPath: /opt/core/db-config.yaml
+              name: db-config
+              subPath: db-config.yaml
+            {{- range $volumes := .Values.dbsync.volumeMounts }}
+            - {{- toYaml $volumes | nindent 16 }}
+            {{- end }}
+      {{- with .Values.dbsync.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: db-config.yaml
+                path: db-config.yaml
+            name: {{ include "vs-dbsync.fullname" . }}-db-config
+          name: db-config
+        {{- range $volumes := .Values.dbsync.volumes }}
+        - {{- toYaml $volumes | nindent 12 }}
+        {{- end }}

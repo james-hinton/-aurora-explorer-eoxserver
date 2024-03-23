@@ -1,0 +1,863 @@
+{
+  "$schema":"http://json-schema.org/draft-07/schema",
+  "$id":"https://gitlab.eox.at/vs/vs/-/raw/main/chart/values.schema.json",
+  "type":"object",
+  "description":"VS chart values schema",
+  "properties":{
+    "global":{
+      "type":"object",
+      "description":"Global definition, shared with other services",
+      "properties":{
+        "metadata":{
+          "type":"object",
+          "description":"The global services metadata",
+          "properties":{
+            "title":{
+              "type":"string",
+              "description":"Used as a HTML page title"
+            }
+          }
+        },
+        "ingress":{
+          "type":"object",
+          "description":"The ingress",
+          "required":[
+            "tls"
+          ],
+          "properties":{
+            "tls":{
+              "types":["array", "boolean"],
+              "description":"The list of tls settings or false to disable.",
+              "items":{
+                  "type": "object",
+                  "description": "A tls definition",
+                  "properties": {
+                      "hosts": {
+                          "type": "array",
+                          "description": "List of hosts",
+                          "items": {
+                              "type": "string",
+                              "description": "Hostname. If set, then first one in a list becomes a service_url for client wms/opensearch/wcs requests."
+                          }
+                      }
+                  }
+              }
+            }
+          }
+        },
+        "layers":{
+          "type":"array",
+          "description":"Layer object definitions. If layer.id == layer.parentLayer, the layer is 'main' configuration object and should contain all other configuration keys. If not, it is just a WMTS visualization sublayer.",
+          "items":{
+            "type":"object",
+            "description":"A definition of a single data layer",
+            "required": ["id"],
+            "properties":{
+              "id":{
+                "type":"string",
+                "description":"The layer id - must be unique. By default will also create a cache tileset, requesting respective WMS layer from renderer. Also used for Opensearch requests to the layer.",
+                "examples":[
+                  "DEM",
+                  "DEM__elevation_earth"
+                ]
+              },
+              "title":{
+                "type":"string",
+                "description":"The title of a layer shown in the client. Defaults to 'layer.id' if not set.",
+                "examples":[
+                  "DEM",
+                  "DEM Elevation earth style"
+                ]
+              },
+              "disableInClient": {
+                "type":"boolean",
+                "description":"If set to true, disables the layer completely from client - but still enables it in cache."
+              },
+              "displayColor":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/displayColor"
+              },
+              "parentLayer":{
+                "type":"string",
+                "description":"The parentLayer. If layer.id == layer.parentLayer, the layer is 'main' configuration object and should contain all other configuration keys. If not, it is just a WMTS visualization sublayer and supports only 'id', 'title' and cache related parameters.",
+                "examples":[
+                  "DEM"
+                ]
+              },
+              "search":{
+                "type":"object",
+                "description":"The search configuration of client",
+                "properties":{
+                  "parameters":{
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/parameters"
+                  },
+                  "iframeUrlTemplate":{
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/iframeUrlTemplate"
+                  },
+                  "searchEnabled": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/searchEnabled"
+                  },
+                  "histogramBinCount": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/histogramBinCount"
+                  },
+                  "histogramThreshold": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/histogramThreshold",
+                    "default": 600
+                  },
+                  "searchLimit": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/searchLimit",
+                    "default": 600
+                  },
+                  "loadMore": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/loadMore",
+                    "default": 600
+                  },
+                  "pageSize": {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/search/properties/pageSize",
+                    "default": 200
+                  }
+                }
+              },
+              "download":{
+                "oneOf":[
+                  {
+                    "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/download",
+                    "description": "Values.config.eoxserverDownloadEnabled is false, then this object specifies the download options as in the referenced config schema."
+                  },
+                  {
+                    "description":"The download configuration Object of client used if Values.config.eoxserverDownloadEnabled is True",
+                    "type":"object",
+                    "properties": {
+                      "wcsExtensionsKVPParameters": {
+                        "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/download/properties/wcsExtensionsKVPParameters"
+                      },
+                      "wcsExtensionsXMLParameters": {
+                        "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/download/properties/wcsExtensionsXMLParameters"
+                      },
+                      "wcsExtensionsXMLNamespaces": {
+                        "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/download/properties/wcsExtensionsXMLNamespaces"
+                      }
+                    }
+                  }
+                ]
+              },
+              "detailsDisplay":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display"
+              },
+              "wpsProcessing":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/wpsProcessing"
+              },
+              "display":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display"
+              },
+              "visible":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/visible",
+                "description":"Use in case layer.display is not set. Sets initial visibility of layer.",
+                "default": true
+              },
+              "description":{
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/description",
+                "description":"Use in case layer.display is not set. Sets HTML content with possible metadata to be shown in layer popover.",
+                "default": ""
+              },
+              "protocol": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/protocol",
+                "description":"Use in case layer.display is not set. The protocol used to display the layer.",
+                "default": "WMTS"
+              },
+              "urls": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/urls",
+                "description":"Use in case layer.display is not set. A list of base-URLs to retrieve tiles. Can be either an array of urls or any of strings 'baseUrlsWMTS, baseUrlsWMS' - which refer to already created JS variable names",
+                "default": "baseUrlsWMTS"
+              },
+              "format": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/format",
+                "description":"Use in case layer.display is not set. File format of base-URLs to retrieve tiles",
+                "default": "image/png"
+              },
+              "projection": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/projection",
+                "description":"Use in case layer.display is not set. The projection identifier in which the tiles will be transferred.",
+                "default": "EPSG:4326"
+              },
+              "matrixSet": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/matrixSet",
+                "description":"Use in case layer.display is not set. The matrix set used to retrieve tiles. Required for WMTS protocol.",
+                "default": "WGS84"
+              },
+              "clientLayerStyle": {
+                "description":"Use in case layer.display is not set. The style in which the tiles will be retrieved. Set to 'default' for WMTS and to 'red' for WMS as default.",
+                "type": "string"
+              },
+              "adjustTime": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/adjustTime",
+                "description":"Use in case layer.display is not set. The time parameter values of WMS/WMTS requests are decreased and increased by the given number of seconds."
+              },
+              "useMilliseconds": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/useMilliseconds",
+                "description":"Use in case layer.display is not set. Determines whether the granularity of the time parameter includes milliseconds."
+              },
+              "minZoom": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/minZoom",
+                "description":"Use in case layer.display is not set. The minimum map zoom level for this layer. Used for map is maximum over all layers.",
+                "default": 1
+              },
+              "maxZoom": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/maxZoom",
+                "description":"Use in case layer.display is not set. The maximum map zoom level for this layer. Used for map is minimum over all layers.",
+                "default": 17
+              },
+              "tileSize": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/tileSize",
+                "description":"Use in case layer.display is not set. The width and height (in pixels) for each WMS tile to be requested.",
+                "default": 256
+              },
+              "attribution": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/attribution",
+                "description":"Use in case layer.display is not set. A string to be displayed when the layer is displayed. Can contain HTML for specific formatting."
+              },
+              "infoPopup": {
+                "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/properties/infoPopup",
+                "description":"Use in case layer.display is not set. If enabled, clicking the layer name in the list of layers will toggle a Popover panel with additional HTML content from 'layer.description' and a GetCapabilities URL if protocol is WM(T)S.",
+                "default": true
+              }
+          },
+          "examples":[
+            [
+              {
+                "id":"DEM",
+                "title":"DEM",
+                "displayColor":"#eb3700",
+                "parentLayer":"DEM",
+                "style":"earth",
+                "grids":[
+                  {
+                    "name":"WGS84",
+                    "zoom":16
+                  }
+                ],
+                "search":{
+                  "parameters":[
+                    {
+                      "type":"geo:uid",
+                      "title":"Product ID",
+                      "privileged":true
+                    }
+                  ],
+                  "iframeUrlTemplate":"baseUrl+\"dem-app/#{{properties.links.find(item=\u003eitem.rel==='via').href}}\""
+                },
+                "detailsDisplay":{
+                  "id":"DEM",
+                  "visible":true,
+                  "protocol":"WMS",
+                  "urls":"baseUrlsOws",
+                  "version":"1.3.0",
+                  "format":"image/png",
+                  "gutter":2,
+                  "projection":"EPSG:4326",
+                  "tileSize":512,
+                  "style":"",
+                  "useMilliseconds":false,
+                  "maxZoom":17,
+                  "enableIframeDisplay":true,
+                  "iframeVisible":true,
+                  "options":[
+                    {
+                      "name":"Elevation",
+                      "replace":[
+                        {
+                          "target":"detailsDisplay.style",
+                          "value":{
+                            "template":"{{detailsDisplay.extraParameters.STYLES}}"
+                          }
+                        },
+                        {
+                          "target":"detailsDisplay.extraParameters.LAYERS",
+                          "value":"DEM"
+                        }
+                      ],
+                      "parameters":[
+                        {
+                          "name":"Style",
+                          "target":"detailsDisplay.extraParameters.STYLES",
+                          "values":"customStyles"
+                        },
+                        {
+                          "name":"Range",
+                          "target":"detailsDisplay.extraParameters.dim_range",
+                          "min":1,
+                          "max":9000,
+                          "default":[
+                            200,
+                            1000
+                          ],
+                          "step":10,
+                          "range":true,
+                          "rangeSeparator":" "
+                        }
+                      ]
+                    },
+                    {
+                      "name":"Hillshade",
+                      "IdAttached":"__hillshade",
+                      "replace":[
+                        {
+                          "target":"detailsDisplay.style",
+                          "value":{
+                            "template":"{{detailsDisplay.extraParameters.STYLES}}"
+                          }
+                        },
+                        {
+                          "target":"detailsDisplay.extraParameters.VARIABLES",
+                          "value":{
+                            "template":"{{detailsDisplay.variablesParameter}}"
+                          }
+                        }
+                      ],
+                      "parameters":[
+                        {
+                          "name":"Algorithm",
+                          "target":"detailsDisplay.variablesObject",
+                          "oneToManyMapping":true,
+                          "value":"alg",
+                          "values":[
+                            {
+                              "value":"ZevenbergenThorne"
+                            },
+                            {
+                              "value":"Horn"
+                            }
+                          ]
+                        },
+                        {
+                          "name":"Azimuth",
+                          "target":"detailsDisplay.variablesObject",
+                          "oneToManyMapping":true,
+                          "value":"azimuth",
+                          "min":0,
+                          "max":360,
+                          "default":[
+                            315
+                          ],
+                          "step":1
+                        },
+                        {
+                          "name":"Altitude",
+                          "target":"detailsDisplay.variablesObject",
+                          "oneToManyMapping":true,
+                          "value":"altitude",
+                          "min":0,
+                          "max":90,
+                          "default":[
+                            45
+                          ],
+                          "step":1
+                        },
+                        {
+                          "name":"Z-factor",
+                          "target":"detailsDisplay.variablesObject",
+                          "oneToManyMapping":true,
+                          "value":"zfactor",
+                          "min":0,
+                          "max":50,
+                          "default":[
+                            5
+                          ],
+                          "step":1
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "wpsProcessing":{
+                  "url":"baseUrlsOws",
+                  "version":"2.0.0",
+                  "processes":[
+                    {
+                      "title":"Hillshaded relief",
+                      "id":"DemProcessing",
+                      "description":"Creates a hillshade from a DEM tile.",
+                      "CoverageIdUsage":true,
+                      "hasBBOX":true,
+                      "additionalInputs":{
+                        "identifier":"hillshade",
+                        "scale":"111120"
+                      },
+                      "inputs":[
+                        {
+                          "type":"bbox",
+                          "description":"Draw a bounding box that intersects the DEM tile. Can be used to crop the output.",
+                          "id":"bbox",
+                          "title":"Bounding box",
+                          "box":true
+                        },
+                        {
+                          "type":"selection",
+                          "description":"Processing algorithm to be performed.",
+                          "id":"algorithm",
+                          "title":"Processing algorithm",
+                          "options":[
+                            {
+                              "title":"Horn",
+                              "id":"algorithm"
+                            },
+                            {
+                              "title":"ZevenbergenThorne",
+                              "id":"algorithm"
+                            }
+                          ]
+                        },
+                        {
+                          "type":"string",
+                          "description":"Azimuth of the light, in degrees. 0 if it comes from the top of the raster, 90 from the east, 315 is the default value.",
+                          "id":"azimuth",
+                          "title":"Azimuth"
+                        },
+                        {
+                          "type":"string",
+                          "description":"Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light. 45 is default.",
+                          "id":"altitude",
+                          "title":"Altitude"
+                        },
+                        {
+                          "type":"string",
+                          "description":"Optional vertical exaggeration used to pre-multiply the elevations. Default 1.",
+                          "id":"z_factor",
+                          "title":"Z factor"
+                        }
+                      ],
+                      "outputs":[
+                        {
+                          "title":"Output Format.",
+                          "id":"result",
+                          "mime_types":[
+                            {
+                              "title":"PNG",
+                              "id":"image/png"
+                            },
+                            {
+                              "title":"JPG",
+                              "id":"image/jpeg"
+                            },
+                            {
+                              "title":"TIFF",
+                              "id":"image/tiff"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "id":"DEM__elevation_earth",
+                "title":"DEM Elevation Earth Style",
+                "parentLayer":"DEM",
+                "style":"earth",
+                "grids":[
+                  {
+                    "name":"WGS84",
+                    "zoom":16
+                  }
+                ]
+              }
+            ]
+          ]
+          }
+        },
+        "overlayLayers":{
+          "type":"array",
+          "description":"Set of overlayLayers served by view server added in addition to the ones from Values.config.overlayLayers. Overlay layers are just for display on map and do not have search or download, but can be time-aware.",
+          "items":{
+            "type":"object",
+            "description":"A definition of a single overlay layer",
+            "required": ["id"],
+            "properties":{
+              "id":{
+                "$ref": "#/properties/global/properties/layers/items/properties/id",
+                "examples":[
+                  "DEM__outlines"
+                ]
+              },
+              "title":{
+                "$ref": "#/properties/global/properties/layers/items/properties/title",
+                "examples":[
+                  "DEM outlines"
+                ]
+              },
+              "display":{
+                "$ref": "#/properties/global/properties/layers/items/properties/display"
+              },
+              "visible":{
+                "$ref": "#/properties/global/properties/layers/items/properties/visible",
+                "default": false
+              },
+              "description":{
+                "$ref": "#/properties/global/properties/layers/items/properties/description"
+              },
+              "protocol":{
+                "$ref": "#/properties/global/properties/layers/items/properties/protocol",
+                "default": "WMS"
+              },
+              "urls":{
+                "$ref": "#/properties/global/properties/layers/items/properties/urls",
+                "default": "baseUrlsOws"
+              },
+              "format":{
+                "$ref": "#/properties/global/properties/layers/items/properties/format"
+              },
+              "tileSize":{
+                "$ref": "#/properties/global/properties/layers/items/properties/tileSize"
+              },
+              "infoPopup":{
+                "$ref": "#/properties/global/properties/layers/items/properties/infoPopup"
+              },
+              "attribution":{
+                "$ref": "#/properties/global/properties/layers/items/properties/attribution"
+              },
+              "projection":{
+                "$ref": "#/properties/global/properties/layers/items/properties/projection"
+              },
+              "style":{
+                "$ref": "#/properties/global/properties/layers/items/properties/clientLayerStyle"
+              },
+              "matrixSet":{
+                "$ref": "#/properties/global/properties/layers/items/properties/matrixSet"
+              },
+              "useMilliseconds":{
+                "$ref": "#/properties/global/properties/layers/items/properties/useMilliseconds"
+              },
+              "adjustTime":{
+                "$ref": "#/properties/global/properties/layers/items/properties/adjustTime"
+              },
+              "minZoom":{
+                "$ref": "#/properties/global/properties/layers/items/properties/minZoom"
+              },
+              "maxZoom":{
+                "$ref": "#/properties/global/properties/layers/items/properties/maxZoom"
+              },
+              "synchronizeTime":{
+                "$refs": "https://gitlab.eox.at/vs/vs/-/raw/main/client/src/config-schema.json#/definitions/layer/properties/display/synchronizeTime",
+                "default": true
+              }
+            }
+          }
+        },
+        "coverageTypes": {
+          "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/chart/eoxserver.values.schema.json#/properties/coverageTypes"
+        },
+        "productTypes": {
+          "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/chart/eoxserver.values.schema.json#/properties/productTypes"
+        },
+        "collections": {
+          "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/chart/eoxserver.values.schema.json#/properties/collections"
+        },
+        "disableDefaultCoverageTypes": {
+          "type": "boolean",
+          "description": "If set to true, default CoverageTypes are not imported."
+        }
+      },
+      "examples":[
+        {
+          "metadata":{
+            "title":"PRISM View Service developed by EOX"
+          },
+          "ingress":{
+            "tls":false
+          },
+          "layers":[
+            {
+              "id":"DEM",
+              "title":"DEM",
+              "displayColor":"#eb3700",
+              "parentLayer":"DEM",
+              "style":"earth",
+              "grids":[
+                {
+                  "name":"WGS84",
+                  "zoom":16
+                }
+              ],
+              "search":{
+                "parameters":[
+                  {
+                    "type":"geo:uid",
+                    "title":"Product ID",
+                    "privileged":true
+                  }
+                ],
+                "iframeUrlTemplate":"baseUrl+\"dem-app/#{{properties.links.find(item=\u003eitem.rel==='via').href}}\""
+              },
+              "detailsDisplay":{
+                "id":"DEM",
+                "visible":true,
+                "protocol":"WMS",
+                "urls":"baseUrlsOws",
+                "version":"1.3.0",
+                "format":"image/png",
+                "gutter":2,
+                "projection":"EPSG:4326",
+                "tileSize":512,
+                "style":"",
+                "useMilliseconds":false,
+                "maxZoom":17,
+                "enableIframeDisplay":true,
+                "iframeVisible":true,
+                "options":[
+                  {
+                    "name":"Elevation",
+                    "replace":[
+                      {
+                        "target":"detailsDisplay.style",
+                        "value":{
+                          "template":"{{detailsDisplay.extraParameters.STYLES}}"
+                        }
+                      },
+                      {
+                        "target":"detailsDisplay.extraParameters.LAYERS",
+                        "value":"DEM"
+                      }
+                    ],
+                    "parameters":[
+                      {
+                        "name":"Style",
+                        "target":"detailsDisplay.extraParameters.STYLES",
+                        "values":"customStyles"
+                      },
+                      {
+                        "name":"Range",
+                        "target":"detailsDisplay.extraParameters.dim_range",
+                        "min":1,
+                        "max":9000,
+                        "default":[
+                          200,
+                          1000
+                        ],
+                        "step":10,
+                        "range":true,
+                        "rangeSeparator":" "
+                      }
+                    ]
+                  },
+                  {
+                    "name":"Hillshade",
+                    "IdAttached":"__hillshade",
+                    "replace":[
+                      {
+                        "target":"detailsDisplay.style",
+                        "value":{
+                          "template":"{{detailsDisplay.extraParameters.STYLES}}"
+                        }
+                      },
+                      {
+                        "target":"detailsDisplay.extraParameters.VARIABLES",
+                        "value":{
+                          "template":"{{detailsDisplay.variablesParameter}}"
+                        }
+                      }
+                    ],
+                    "parameters":[
+                      {
+                        "name":"Algorithm",
+                        "target":"detailsDisplay.variablesObject",
+                        "oneToManyMapping":true,
+                        "value":"alg",
+                        "values":[
+                          {
+                            "value":"ZevenbergenThorne"
+                          },
+                          {
+                            "value":"Horn"
+                          }
+                        ]
+                      },
+                      {
+                        "name":"Azimuth",
+                        "target":"detailsDisplay.variablesObject",
+                        "oneToManyMapping":true,
+                        "value":"azimuth",
+                        "min":0,
+                        "max":360,
+                        "default":[
+                          315
+                        ],
+                        "step":1
+                      },
+                      {
+                        "name":"Altitude",
+                        "target":"detailsDisplay.variablesObject",
+                        "oneToManyMapping":true,
+                        "value":"altitude",
+                        "min":0,
+                        "max":90,
+                        "default":[
+                          45
+                        ],
+                        "step":1
+                      },
+                      {
+                        "name":"Z-factor",
+                        "target":"detailsDisplay.variablesObject",
+                        "oneToManyMapping":true,
+                        "value":"zfactor",
+                        "min":0,
+                        "max":50,
+                        "default":[
+                          5
+                        ],
+                        "step":1
+                      }
+                    ]
+                  }
+                ]
+              },
+              "wpsProcessing":{
+                "url":"baseUrlsOws",
+                "version":"2.0.0",
+                "processes":[
+                  {
+                    "title":"Hillshaded relief",
+                    "id":"DemProcessing",
+                    "description":"Creates a hillshade from a DEM tile.",
+                    "CoverageIdUsage":true,
+                    "hasBBOX":true,
+                    "additionalInputs":{
+                      "identifier":"hillshade",
+                      "scale":"111120"
+                    },
+                    "inputs":[
+                      {
+                        "type":"bbox",
+                        "description":"Draw a bounding box that intersects the DEM tile. Can be used to crop the output.",
+                        "id":"bbox",
+                        "title":"Bounding box",
+                        "box":true
+                      },
+                      {
+                        "type":"selection",
+                        "description":"Processing algorithm to be performed.",
+                        "id":"algorithm",
+                        "title":"Processing algorithm",
+                        "options":[
+                          {
+                            "title":"Horn",
+                            "id":"algorithm"
+                          },
+                          {
+                            "title":"ZevenbergenThorne",
+                            "id":"algorithm"
+                          }
+                        ]
+                      },
+                      {
+                        "type":"string",
+                        "description":"Azimuth of the light, in degrees. 0 if it comes from the top of the raster, 90 from the east, 315 is the default value.",
+                        "id":"azimuth",
+                        "title":"Azimuth"
+                      },
+                      {
+                        "type":"string",
+                        "description":"Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light. 45 is default.",
+                        "id":"altitude",
+                        "title":"Altitude"
+                      },
+                      {
+                        "type":"string",
+                        "description":"Optional vertical exaggeration used to pre-multiply the elevations. Default 1.",
+                        "id":"z_factor",
+                        "title":"Z factor"
+                      }
+                    ],
+                    "outputs":[
+                      {
+                        "title":"Output Format.",
+                        "id":"result",
+                        "mime_types":[
+                          {
+                            "title":"PNG",
+                            "id":"image/png"
+                          },
+                          {
+                            "title":"JPG",
+                            "id":"image/jpeg"
+                          },
+                          {
+                            "title":"TIFF",
+                            "id":"image/tiff"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "id":"DEM__elevation_earth",
+              "title":"DEM Elevation Earth Style",
+              "parentLayer":"DEM",
+              "style":"earth",
+              "grids":[
+                {
+                  "name":"WGS84",
+                  "zoom":16
+                }
+              ]
+            }
+          ],
+          "overlayLayers":[
+            {
+              "id":"DEM__outlines",
+              "title":"DEM outlines"
+            }
+          ]
+        }
+      ]
+    },
+    "gdal": {
+      "type": "object",
+      "description":"General GDAL related settings",
+      "required": ["allowedExtensions"],
+      "properties": {
+        "allowedExtensions": {
+          "type": "object",
+          "description": "CPL_VSIL_CURL_ALLOWED_EXTENSIONS",
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether to set the value for CPL_VSIL_CURL_ALLOWED_EXTENSIONS"
+            },
+            "value": {
+              "type": "string",
+              "description": "Actual value for CPL_VSIL_CURL_ALLOWED_EXTENSIONS"
+            }
+          }
+        }
+      }
+    },
+    "client":{
+      "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/chart/client.values.schema.json",
+      "description": "Client specific values"
+    },
+    "harvester":{
+      "config": {
+        "$ref": "https://gitlab.eox.at/vs/vs/-/raw/main/harvester/src/harvester/config-schema.json",
+        "description": "Harvester specific values"
+      }
+    },
+    "preprocessor":{
+      "config": {
+        "$ref":"https://gitlab.eox.at/vs/vs/-/raw/main/preprocessor/src/preprocessor/config-schema.json",
+        "description": "preprocessor specific values"
+      }
+    },
+    "scheduler":{
+      "config": {
+        "$ref":"https://gitlab.eox.at/vs/vs/-/raw/main/scheduler/src/scheduler/config-schema.json",
+        "description": "preprocessor specific values"
+      }
+    }
+  },
+  "required": ["gdal"]
+}

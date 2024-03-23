@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-renderer.fullname" . }}
+  labels:
+    {{- include "vs-renderer.labels" . | nindent 4 }}
+    app.kubernetes.io/service: renderer
+spec:
+  replicas: {{ .Values.renderer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-renderer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: renderer
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      labels:
+        {{- include "vs-renderer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: renderer
+    spec:
+      {{- with .Values.renderer.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-renderer.name" . }}
+          image: "{{ .Values.renderer.image.repository }}:{{ .Values.renderer.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.renderer.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.renderer.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              {{- if .Values.global.ingress.prefix.enabled }}
+              path: {{ .Values.global.ingress.prefix.value | quote }}
+              {{- else }}
+              path: /
+              {{- end }}
+              port: http
+          startupProbe:
+            httpGet:
+              {{- if .Values.global.ingress.prefix.enabled }}
+              path: {{ .Values.global.ingress.prefix.value | quote }}
+              {{- else }}
+              path: /
+              {{- end }}
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.renderer.resources | nindent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Release.Name }}-database
+            - name: INIT_SCRIPTS
+              value: /opt/core/configure.sh /opt/core/initialized.sh
+            - name: INSTANCE_ID
+              value: view-server_renderer
+            - name: STARTUP_SCRIPTS
+              value: {{- range $script := .Values.global.env.startup_scripts }} {{ $script }}{{ end }}
+            - name: WAIT_SERVICES
+              value: {{ .Release.Name }}-database:{{ .Values.global.env.DB_PORT }}
+            - name: ENABLE_HTTP_ACCESS
+            {{- if .Values.renderer.config.enableHttpAccess }}
+              value: "true"
+            {{- else }}
+              value: "false"
+            {{- end }}
+            {{- if .Values.global.ingress.prefix.enabled }}
+            - name: SCRIPT_NAME
+              value: "/{{ .Values.global.ingress.prefix.value }}"
+            {{- end }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.gdal.allowedExtensions.enabled }}
+            - name: CPL_VSIL_CURL_ALLOWED_EXTENSIONS
+              value: {{ .Values.gdal.allowedExtensions.value }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-django-secret-key
+          volumeMounts:
+            {{- range $volumes := .Values.renderer.volumeMounts }}
+            - {{- toYaml $volumes | nindent 16 }}
+            {{- end }}
+      {{- with .Values.renderer.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- range $volumes := .Values.renderer.volumes }}
+        - {{- toYaml $volumes | nindent 12 }}
+        {{- end }}

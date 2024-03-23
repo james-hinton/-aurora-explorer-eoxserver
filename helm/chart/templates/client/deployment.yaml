@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-client.fullname" . }}
+  labels:
+    {{- include "vs-client.labels" . | nindent 4 }}
+    app.kubernetes.io/service: client
+spec:
+  replicas: {{ .Values.client.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-client.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: client
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+      labels:
+        {{- include "vs-client.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: client
+    spec:
+      {{- with .Values.client.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-client.name" . }}
+          image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.client.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.client.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          resources:
+            {{- toYaml .Values.client.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /usr/share/nginx/html/index.html
+            name: client
+            subPath: index.html
+      {{- with .Values.client.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - configMap:
+          items:
+          - key: index.html
+            path: index.html
+          name: {{ include "vs-client.fullname" . }}-config
+        name: client

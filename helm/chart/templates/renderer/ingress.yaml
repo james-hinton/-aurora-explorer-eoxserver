@@ -1,0 +1,87 @@
+{{- if .Values.renderer.ingress.enabled -}}
+{{- $fullName := include "vs-renderer.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "vs-renderer.labels" . | nindent 4 }}
+  {{- with .Values.renderer.ingress.annotations | default .Values.global.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.renderer.ingress.tls | default .Values.global.ingress.tls }}
+  tls:
+    {{- range .Values.renderer.ingress.tls | default .Values.global.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.renderer.ingress.hosts | default .Values.global.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        - pathType: Prefix
+          {{- if $.Values.global.ingress.prefix.enabled }}
+          path: /{{ $.Values.global.ingress.prefix.value }}/ows
+          {{- else }}
+          path: /ows
+          {{- end }}
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: 80
+        - pathType: Prefix
+          {{- if $.Values.global.ingress.prefix.enabled }}
+          path: /{{ $.Values.global.ingress.prefix.value }}/opensearch
+          {{- else }}
+          path: /opensearch
+          {{- end }}
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: 80
+        - pathType: Prefix
+          {{- if $.Values.global.ingress.prefix.enabled }}
+          path: /{{ $.Values.global.ingress.prefix.value }}/admin
+          {{- else }}
+          path: /admin
+          {{- end }}
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: 80
+        - pathType: Prefix
+          {{- if $.Values.global.ingress.prefix.enabled }}
+          path: /{{ $.Values.global.ingress.prefix.value }}/coverages/metadata
+          {{- else }}
+          path: /coverages/metadata
+          {{- end }}
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: 80
+        {{- if $.Values.renderer.config.enableHttpAccess }}
+        - pathType: Prefix
+          {{- if $.Values.global.ingress.prefix.enabled }}
+          path: /{{ $.Values.global.ingress.prefix.value }}/http
+          {{- else }}
+          path: /http
+          {{- end }}
+          backend:
+            service:
+              name: {{ $fullName }}
+              port:
+                number: 80
+        {{- end -}}
+  {{- end -}}
+{{- end -}}

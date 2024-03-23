@@ -1,0 +1,20 @@
+{{ if .Values.renderer.hpa.enabled }}
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "vs-renderer.fullname" . }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "vs-renderer.fullname" . }}
+  minReplicas: {{ .Values.renderer.hpa.minReplicas }}
+  maxReplicas: {{ .Values.renderer.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 100
+{{ end }}

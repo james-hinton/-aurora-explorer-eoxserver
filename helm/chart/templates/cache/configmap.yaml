@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vs-cache.fullname" . }}-config
+data:
+  {{ (tpl (.Files.Glob "files/cache/mapcache.xml").AsConfig . ) | nindent 2}}

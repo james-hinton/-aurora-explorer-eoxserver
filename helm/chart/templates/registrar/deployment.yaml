@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vs-registrar.fullname" . }}
+  labels:
+    {{- include "vs-registrar.labels" . | nindent 4 }}
+    app.kubernetes.io/service: registrar
+spec:
+  replicas: {{ .Values.registrar.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vs-registrar.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service: registrar
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ include (print $.Template.BasePath "/registrar/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "vs-registrar.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/service: registrar
+    spec:
+      {{- with .Values.registrar.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "vs-registrar.name" . }}
+          image: "{{ .Values.registrar.image.repository }}:{{ .Values.registrar.image.tag | default ( print "release-" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.registrar.image.pullPolicy | default "IfNotPresent" }}
+          resources:
+            {{- toYaml .Values.registrar.resources | nindent 12 }}
+          args:
+            - "/opt/core/run-registrar.sh"
+          env:
+            - name: DB_HOST
+              value: {{ .Release.Name }}-database
+            - name: REDIS_HOST
+              value: {{ .Release.Name }}-redis-master
+            - name: INIT_SCRIPTS
+              value: /opt/core/configure.sh /opt/core/initialized.sh
+            - name: INSTANCE_ID
+              value: view-server_registrar
+            - name: STARTUP_SCRIPTS
+              value: {{- range $script := .Values.global.env.startup_scripts }} {{ $script }}{{ end }}
+            - name: WAIT_SERVICES
+              value: {{ .Release.Name }}-database:{{ .Values.global.env.DB_PORT }} {{ .Release.Name }}-redis-master:{{ .Values.global.env.REDIS_PORT }}
+            {{- range $key, $value := .Values.global.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.gdal.allowedExtensions.enabled }}
+            - name: CPL_VSIL_CURL_ALLOWED_EXTENSIONS
+              value: {{ .Values.gdal.allowedExtensions.value }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-django-secret-key
+          volumeMounts:
+            - mountPath: /config.yaml
+              name: registrar-config
+              subPath: registrar-config.yaml
+            {{- range $volumes := .Values.registrar.volumeMounts }}
+            -{{- toYaml $volumes | nindent 16 -}}
+            {{- end -}}
+      {{- with .Values.registrar.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            items:
+              - key: registrar-config.yaml
+                path: registrar-config.yaml
+            name: {{ include "vs-registrar.fullname" . }}-config
+          name: registrar-config
+        {{- range $volumes := .Values.registrar.volumes }}
+        -{{- toYaml $volumes | nindent 12 -}}
+        {{- end }}
