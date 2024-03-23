@@ -1,12 +1,17 @@
 # Aurora Explorer View Server Setup Guide
 
 ## Explanation
-Helm values that work with the View Server (VS) monorepo here - https://gitlab.eox.at/vs/vs
+Helm values that work with :
+- View Server (VS) monorepo here - https://gitlab.eox.at/vs/vs
+- Terraform - https://github.com/james-hinton/aurora-explorer-terraform
+- Lambda - https://github.com/james-hinton/aurora-explorer-lambda-functions
+- K8s - https://github.com/james-hinton/aurora-explorer-k8s
 
 ## Examples
-View `examples/` directory to see OGC WCS output.
+View `examples/` directory to see my OGC WCS output.
 
 ## Local Setup to work with VS
+###### If working on an already deployed managed kubernetes service skip the first 2 steps
 
 1. **Start Minikube** with specific resources and mount a local directory to Minikube. Adjust the `--mount-string` path as needed.
    ```bash
@@ -20,19 +25,20 @@ View `examples/` directory to see OGC WCS output.
 
 3. **Apply PVC Configuration** to create a Persistent Volume Claim in Kubernetes, allowing storage to persist across pod recreations. Ensure `pvc.yaml` is configured for your storage needs.
    ```bash
-   kubectl apply -f pvc.yaml
+   kubectl apply -f k8s/pvc.yaml
    ```
 
 4. **Install EOxServer** using Helm. This command deploys your EOxServer based on the provided chart and configuration values.
    ```bash
-   helm install aurora-explorer-view-server chart --values chart/values.yaml
+   cd helm
+   helm install aurora-explorer-view-server chart --values ./values.yaml
    ```
 
 ## Configure EOxServer Coverages
 
 1. **Access EOxServer Pod** to execute commands inside the container. Replace the pod name with the actual name of your EOxServer pod.
    ```bash
-   kubectl exec -it aurora-explorer-view-server-renderer-867c568d9f-qtbqb /bin/bash
+   kubectl exec -it aurora-explorer-view-server-renderer-<YOUR POD ID> /bin/bash
    ```
 
 2. **Register Coverage** in EOxServer. This command registers a TIFF file as a coverage within EOxServer, including its metadata.
@@ -44,9 +50,11 @@ View `examples/` directory to see OGC WCS output.
      --collection AURORA_INTENSITY \
      --meta-data /data/test-stac.json 
    ```
+   Obviously replace with your own data thats mounted in `/data/`
 
 ## Accessing the Service
 
+### Local:
 1. **Port Forward** to access EOxServer from your local machine. This makes the EOxServer accessible via `localhost:8081`.
    ```bash
    kubectl port-forward svc/aurora-explorer-view-server-renderer 8081:80
@@ -57,5 +65,7 @@ View `examples/` directory to see OGC WCS output.
    http://localhost:8081/ows?service=WCS&request=GetCoverage&coverageid=AURORA_INTENSITY_20240309180559
    ```
 
-### OR
-If deployed through EKS, just set up a load balancer to the service and it sorts itself out.
+   Check `examples/` folder to see my output.
+
+### EKS
+1. `kubectl apply -f k8s/renderer-service.yaml`
