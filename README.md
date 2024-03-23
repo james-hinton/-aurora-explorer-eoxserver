@@ -1,16 +1,19 @@
 # Aurora Explorer View Server Setup Guide
+Project description - https://gist.github.com/james-hinton/153704719a4546f78cb6dd2fe545d4c6
 
 ## Explanation
-Helm values that work with :
-- View Server (VS) monorepo here - https://gitlab.eox.at/vs/vs
+
+- `argocd/` - Manifest file for ArgoCD, works with local minikube setup
+- `examples/` - Example output data from EOxServer
+- `helm/` - The helm charts and values for setup on Kubernetes
+- `k8s/` - Other misc kubernetes for setup
+
+For use with View Server (VS) monorepo here - https://gitlab.eox.at/vs/vs
 
 Related Repos:
 - Terraform - https://github.com/james-hinton/aurora-explorer-terraform
 - Lambda - https://github.com/james-hinton/aurora-explorer-lambda-functions
 - K8s - https://github.com/james-hinton/aurora-explorer-k8s
-
-## Examples
-View `examples/` directory to see my OGC WCS output.
 
 ## Local Setup to work with VS
 ###### If working on an already deployed managed kubernetes service skip the first 2 steps
