@@ -1,0 +1,165 @@
+<wcseo:EOCoverageSetDescription xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+    xmlns:wcs="http://www.opengis.net/wcs/2.0" xmlns:crs="http://www.opengis.net/wcs/crs/1.0"
+    xmlns:rsub="http://www.opengis.net/wcs/range-subsetting/1.0"
+    xmlns:wcseo="http://www.opengis.net/wcs/wcseo/1.0" xmlns:om="http://www.opengis.net/om/2.0"
+    xmlns:eop="http://www.opengis.net/eop/2.0" xmlns:swe="http://www.opengis.net/swe/2.0"
+    xmlns:int="http://www.opengis.net/wcs/interpolation/1.0"
+    xmlns:scal="http://www.opengis.net/wcs/scaling/1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" numberMatched="3" numberReturned="3"
+    xsi:schemaLocation="http://www.opengis.net/wcs/wcseo/1.0 http://schemas.opengis.net/wcs/wcseo/1.0/wcsEOAll.xsd">
+    <wcs:CoverageDescriptions>
+        <wcs:CoverageDescription gml:id="aurora_intensity_20240304164702_COG">
+            <gml:boundedBy>
+                <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/3857" axisLabels="x y"
+                    uomLabels="m m" srsDimension="2">
+                    <gml:lowerCorner>-20037508.343 -20037508.343</gml:lowerCorner>
+                    <gml:upperCorner>20037508.343 20037508.343</gml:upperCorner>
+                </gml:Envelope>
+            </gml:boundedBy>
+            <wcs:CoverageId>aurora_intensity_20240304164702_COG</wcs:CoverageId>
+            <gmlcov:metadata>
+                <gmlcov:Extension>
+                    <wcseo:EOMetadata>
+                        <eop:EarthObservation gml:id="eop_aurora_intensity_20240304164702_COG">
+                            <om:procedure />
+                            <om:observedProperty />
+                            <om:result />
+                            <eop:metaDataProperty>
+                                <eop:EarthObservationMetaData>
+                                    <eop:identifier>aurora_intensity_20240304164702_COG</eop:identifier>
+                                    <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                                    <eop:status>ARCHIVED</eop:status>
+                                </eop:EarthObservationMetaData>
+                            </eop:metaDataProperty>
+                        </eop:EarthObservation>
+                    </wcseo:EOMetadata>
+                </gmlcov:Extension>
+            </gmlcov:metadata>
+            <gml:domainSet>
+                <gml:RectifiedGrid gml:id="aurora_intensity_20240304164702_COG_grid" dimension="2">
+                    <gml:limits>
+                        <gml:GridEnvelope>
+                            <gml:low>0 0</gml:low>
+                            <gml:high>255 255</gml:high>
+                        </gml:GridEnvelope>
+                    </gml:limits>
+                    <gml:axisLabels>x y</gml:axisLabels>
+                    <gml:origin>
+                        <gml:Point gml:id="aurora_intensity_20240304164702_COG_grid_origin"
+                            srsName="http://www.opengis.net/def/crs/EPSG/0/3857">
+                            <gml:pos>-20037508.343 20037508.343</gml:pos>
+                        </gml:Point>
+                    </gml:origin>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">156543.034
+                        0.000</gml:offsetVector>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/3857">0.000
+                        -156543.034</gml:offsetVector>
+                </gml:RectifiedGrid>
+            </gml:domainSet>
+            <gmlcov:rangeType>
+                <swe:DataRecord>
+                    <swe:field name="INTENSITY">
+                        <swe:Quantity
+                            definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+                            <swe:description>Intensity</swe:description>
+                            <swe:nilValues>
+                                <swe:NilValues>
+                                    <swe:nilValue
+                                        reason="http://www.opengis.net/def/nil/OGC/0/unknown">-9999</swe:nilValue>
+                                </swe:NilValues>
+                            </swe:nilValues>
+                            <swe:uom code="W.m-2.Sr-1" />
+                            <swe:constraint>
+                                <swe:AllowedValues />
+                            </swe:constraint>
+                        </swe:Quantity>
+                    </swe:field>
+                </swe:DataRecord>
+            </gmlcov:rangeType>
+            <wcs:ServiceParameters>
+                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
+                <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
+            </wcs:ServiceParameters>
+        </wcs:CoverageDescription>
+        <wcs:CoverageDescription gml:id="AURORA_INTENSITY_20240309180559">
+            <gml:boundedBy>
+                <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326"
+                    axisLabels="lat long" uomLabels="deg deg" srsDimension="2">
+                    <gml:lowerCorner>-90.00000000 -180.00000000</gml:lowerCorner>
+                    <gml:upperCorner>90.00000000 180.00000000</gml:upperCorner>
+                </gml:Envelope>
+            </gml:boundedBy>
+            <wcs:CoverageId>AURORA_INTENSITY_20240309180559</wcs:CoverageId>
+            <gmlcov:metadata>
+                <gmlcov:Extension>
+                    <wcseo:EOMetadata>
+                        <eop:EarthObservation gml:id="eop_AURORA_INTENSITY_20240309180559">
+                            <om:procedure />
+                            <om:observedProperty />
+                            <om:result />
+                            <eop:metaDataProperty>
+                                <eop:EarthObservationMetaData>
+                                    <eop:identifier>AURORA_INTENSITY_20240309180559</eop:identifier>
+                                    <eop:acquisitionType>NOMINAL</eop:acquisitionType>
+                                    <eop:status>ARCHIVED</eop:status>
+                                </eop:EarthObservationMetaData>
+                            </eop:metaDataProperty>
+                        </eop:EarthObservation>
+                    </wcseo:EOMetadata>
+                </gmlcov:Extension>
+            </gmlcov:metadata>
+            <gml:domainSet>
+                <gml:RectifiedGrid gml:id="AURORA_INTENSITY_20240309180559_grid" dimension="2">
+                    <gml:limits>
+                        <gml:GridEnvelope>
+                            <gml:low>0 0</gml:low>
+                            <gml:high>359 179</gml:high>
+                        </gml:GridEnvelope>
+                    </gml:limits>
+                    <gml:axisLabels>lat long</gml:axisLabels>
+                    <gml:origin>
+                        <gml:Point gml:id="AURORA_INTENSITY_20240309180559_grid_origin"
+                            srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+                            <gml:pos>90.00000000 -180.00000000</gml:pos>
+                        </gml:Point>
+                    </gml:origin>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">0.00000000
+                        1.00000000</gml:offsetVector>
+                    <gml:offsetVector srsName="http://www.opengis.net/def/crs/EPSG/0/4326">-1.00000000
+                        0.00000000</gml:offsetVector>
+                </gml:RectifiedGrid>
+            </gml:domainSet>
+            <gmlcov:rangeType>
+                <swe:DataRecord>
+                    <swe:field name="INTENSITY">
+                        <swe:Quantity
+                            definition="http://www.opengis.net/def/property/OGC/0/Radiance">
+                            <swe:description>Intensity</swe:description>
+                            <swe:nilValues>
+                                <swe:NilValues>
+                                    <swe:nilValue
+                                        reason="http://www.opengis.net/def/nil/OGC/0/unknown">-9999</swe:nilValue>
+                                </swe:NilValues>
+                            </swe:nilValues>
+                            <swe:uom code="W.m-2.Sr-1" />
+                            <swe:constraint>
+                                <swe:AllowedValues />
+                            </swe:constraint>
+                        </swe:Quantity>
+                    </swe:field>
+                </swe:DataRecord>
+            </gmlcov:rangeType>
+            <wcs:ServiceParameters>
+                <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
+                <wcs:nativeFormat>image/tiff</wcs:nativeFormat>
+            </wcs:ServiceParameters>
+        </wcs:CoverageDescription>
+    </wcs:CoverageDescriptions>
+    <wcseo:DatasetSeriesDescriptions>
+        <wcseo:DatasetSeriesDescription gml:id="AURORA_INTENSITY">
+            <wcseo:DatasetSeriesId>AURORA_INTENSITY</wcseo:DatasetSeriesId>
+        </wcseo:DatasetSeriesDescription>
+    </wcseo:DatasetSeriesDescriptions>
+</wcseo:EOCoverageSetDescription>

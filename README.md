@@ -1,6 +1,12 @@
 # Aurora Explorer View Server Setup Guide
 
-## Initial Setup
+## Explanation
+Helm values that work with the View Server (VS) monorepo here - https://gitlab.eox.at/vs/vs
+
+## Examples
+View `examples/` directory to see OGC WCS output.
+
+## Local Setup to work with VS
 
 1. **Start Minikube** with specific resources and mount a local directory to Minikube. Adjust the `--mount-string` path as needed.
    ```bash
@@ -22,7 +28,7 @@
    helm install aurora-explorer-view-server chart --values chart/values.yaml
    ```
 
-## Configure EOxServer
+## Configure EOxServer Coverages
 
 1. **Access EOxServer Pod** to execute commands inside the container. Replace the pod name with the actual name of your EOxServer pod.
    ```bash
@@ -50,3 +56,6 @@
    ```plaintext
    http://localhost:8081/ows?service=WCS&request=GetCoverage&coverageid=AURORA_INTENSITY_20240309180559
    ```
+
+### OR
+If deployed through EKS, just set up a load balancer to the service and it sorts itself out.

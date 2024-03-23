@@ -1,3 +1,4 @@
+# This is only if you want to work with EoXServer on its own. 
 
 version: '3.7'
 
