@@ -32,6 +32,16 @@ global:
       data:
         type: "directory"
         root_directory: "/data"
+      
+      # their s3 doesnt work anyway.
+      data2:
+        type: "s3"
+        bucket: "aurora-explorer-data"
+        endpoint_url: "https://aurora-explorer-data.s3.eu-west-2.amazonaws.com"
+        access_key_id: "NOTREAL"
+        secret_access_key: "NOTREAL"
+        region_name: "eu-west-2"
+      
     cache:
       type: local
   
@@ -46,10 +56,6 @@ global:
   productTypes:
     - name: AURORA
       defaultBrowse: INTENSITY
-      coverages:
-        INTENSITY:
-          assets:
-            - aurora_intensity_20240304164702.tif
       browses:
         INTENSITY:
           red:
@@ -75,6 +81,22 @@ global:
       search:
         histogramBinCount: 15
         histogramThreshold: 80
+      download: &defaultDownloadClient
+        wcsExtensionsKVPParameters:
+          exceptions: 'text/html'
+        wcsExtensionsXMLParameters:
+          'eoxs:exceptions': 'text/html'
+        wcsExtensionsXMLNamespaces:
+          eoxs: 'http://eoxserver.org/eoxs/1.0'
+      detailsDisplay:
+        id: "aurora_intensity"
+        visible: true
+        protocol: "WMS"
+        urls: baseUrlsOws
+        version: "1.3.0"
+        format: "image/png"
+        gutter: 2
+        projection: "EPSG:4326"
   
   overlayLayers:
     []
@@ -128,12 +150,11 @@ global:
     tls:
       - hosts:
           - vs.local
-        secretName: vs-secret
+        # secretName: vs-secret
       # hosts and tls will be redefined always
       #
     prefix:
       enabled: false
-      value: ""
 
 # general gdal related settings
 gdal:
