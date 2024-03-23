@@ -5,7 +5,8 @@ global:
     GDAL_DISABLE_READDIR_ON_OPEN: "TRUE"
     COLLECT_STATIC: "false"
     GDAL_PAM_ENABLED: "NO"
-    #### SHOULD BE CHANGED IN PROD ####
+
+    # NOTE: The following credentials are not real and are used for demonstration purposes only
     DB_NAME: dbname
     DB_PORT: "5432"
     DB_PW: dbpw
@@ -13,6 +14,7 @@ global:
     POSTGRES_DB: dbname
     POSTGRES_PASSWORD: dbpw
     POSTGRES_USER: dbuser
+
     DJANGO_MAIL: office@eox.at
     DJANGO_PASSWORD: djangopw
     DJANGO_USER: djangouser
@@ -21,19 +23,19 @@ global:
     REDIS_REGISTER_QUEUE_KEY: register_queue
     REDIS_SEED_QUEUE_KEY: seed_queue
     REDIS_HARVESTER_QUEUE_KEY: harvester_queue
-  
+
   dbsync:
     create: true
     replace: false
     delete: false
-  
+
   storage:
     data:
       data:
         type: "directory"
         root_directory: "/data"
-      
-      # their s3 doesnt work anyway.
+
+      # It seems EoXServer S3-integration currently is having problems, if you want to use S3 then mount your own S3FS.
       data2:
         type: "s3"
         bucket: "aurora-explorer-data"
@@ -41,18 +43,17 @@ global:
         access_key_id: "NOTREAL"
         secret_access_key: "NOTREAL"
         region_name: "eu-west-2"
-      
+
     cache:
       type: local
-  
+
   collections:
     AURORA_INTENSITY:
       product_types:
         - AURORA
       coverage_types:
         - INTENSITY
-  
-  
+
   productTypes:
     - name: AURORA
       defaultBrowse: INTENSITY
@@ -66,10 +67,9 @@ global:
             nodata: 0
       collections:
         - AURORA_INTENSITY
-  
-  
+
   defaultLayer:
-  
+
   layers:
     - id: AURORA_INTENSITY
       title: Aurora Intensity Measurements
@@ -83,11 +83,11 @@ global:
         histogramThreshold: 80
       download: &defaultDownloadClient
         wcsExtensionsKVPParameters:
-          exceptions: 'text/html'
+          exceptions: "text/html"
         wcsExtensionsXMLParameters:
-          'eoxs:exceptions': 'text/html'
+          "eoxs:exceptions": "text/html"
         wcsExtensionsXMLNamespaces:
-          eoxs: 'http://eoxserver.org/eoxs/1.0'
+          eoxs: "http://eoxserver.org/eoxs/1.0"
       detailsDisplay:
         id: "aurora_intensity"
         visible: true
@@ -97,47 +97,24 @@ global:
         format: "image/png"
         gutter: 2
         projection: "EPSG:4326"
-  
-  overlayLayers:
-    []
-    # example
-    # - id: test
-    #   title: test
-    #   displayColor: "#eb3700"
-  
+
+  overlayLayers: []
+
   coverageTypes:
     - name: INTENSITY
       bands:
-        - definition: 'http://www.opengis.net/def/property/OGC/0/Radiance'
+        - definition: "http://www.opengis.net/def/property/OGC/0/Radiance"
           description: Intensity
           identifier: INTENSITY
           name: Intensity
           nil_values:
-            - reason: 'http://www.opengis.net/def/nil/OGC/0/unknown'
+            - reason: "http://www.opengis.net/def/nil/OGC/0/unknown"
               value: -9999
-          uom: 'W.m-2.Sr-1'
+          uom: "W.m-2.Sr-1"
       data_type: Float32
   disableDefaultCoverageTypes: false
-  rasterStyles:
-    []
-    # example
-    # - name: "blackwhite"
-    #   type: "ramp"
-    #   title: "BlackWhite"
-    #   abstract: "From Black to White"
-    #   colorEntries:
-    #     - value: 0
-    #       color: #000000
-    #       opacity: 1
-    #       label: Black
-    #     - value: 1
-    #       color: #FFFFFF
-    #       opacity: 1
-    #       label: White
-  metadata:
-    {}
-    # any metadata relevant for services
-    #
+  rasterStyles: []
+  metadata: {}
   ingress:
     annotations:
       kubernetes.io/ingress.class: nginx
@@ -150,16 +127,13 @@ global:
     tls:
       - hosts:
           - vs.local
-        # secretName: vs-secret
-      # hosts and tls will be redefined always
-      #
     prefix:
       enabled: false
 
 # general gdal related settings
 gdal:
   allowedExtensions:
-    enabled: false  # This will be null in the future to enforce overriding
+    enabled: false # This will be null in the future to enforce overriding
     value: ".tif,.xml"
 
 database:
@@ -192,7 +166,7 @@ database:
 redis:
   usePassword: false
   persistence:
-    existingClaim: data-access-redis # rename to persistent volume claim
+    existingClaim: data-access-redis
   master:
     persistence:
       enabled: true
@@ -213,16 +187,6 @@ client:
   imagePullSecrets: []
 
   config:
-    # client time can be set to ISO 8601 datetime or following "special times":
-    # "today", "customClientDatePast1", "customClientDatePast2", "customClientDatePast3", "customClientDatePast4"
-    # "customClientDateFuture1", "customClientDateFuture2", "customClientDateFuture3", "customClientDateFuture4"
-    # configured respectively by customClientDaysPast1 and customClientDaysFuture1 etc. to create a date by adding/subtracting x days from today's date
-    # example values:
-    # customClientDaysPast1: 30
-    # customClientDaysFuture1: 3
-    # selectedTimeDomain:
-    #   - customClientDatePast1
-    #   - customClientDateFuture1
     timeDomain:
       - "2019-01-01T00:00:00Z"
       - "today"
@@ -240,7 +204,7 @@ client:
     zoom: 5
     minZoom: 1
     maxZoom: 17
-    serviceUrl: "" # vs renderer/cache services url - if not set, either global.ingress.tls[0].hosts[0] is used or JS window.location.hostname as fallback
+    serviceUrl: ""
     clientHeaderHTML: '<header id="header" style="width: 100%; height:70px; position:absolute;"><h3 style="width:100%; text-align:center; color: #006699;">PRISM View Server (PVS) Client powered by <a href="//eox.at"><img src="//eox.at/EOX_Logo.svg" alt="EOX" style="height:25px;margin-left:10px"/></a></h3></header>'
     clientHeaderHeight: 70px
     leftPanelOpen: true
@@ -646,7 +610,6 @@ registrar:
   volumeMounts:
     - name: local-storage
       mountPath: /data
-
 
   config:
     disableDefaultRoute: false
